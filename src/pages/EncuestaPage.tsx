@@ -235,7 +235,7 @@ export const EncuestaPage = () => {
             <textarea 
               value={datosEncuesta.sugerencia} 
               onChange={e => setDatosEncuesta(prev => ({...prev, sugerencia: e.target.value}))} 
-              className="w-full p-5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-sky-300 outline-none min-h-[180px] bg-white shadow-sm text-lg" 
+              className="w-full p-5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-sky-300 outline-none min-h-45 bg-white shadow-sm text-lg" 
               placeholder="Escriba aquí su mensaje (opcional)..."
             />
           </div>
