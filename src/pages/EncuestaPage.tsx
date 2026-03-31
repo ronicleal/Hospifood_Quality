@@ -17,6 +17,14 @@ export const EncuestaPage = () => {
     planta: '', turno: '' as any, sugerencia: '', respuestas: []
   });
 
+  // Estados para controlar el envío
+  const [enviando, setEnviando] = useState(false);
+  const [encuestaCompletada, setEncuestaCompletada] = useState(false);
+
+  // --- LEER EL HOSPITAL DESDE EL QR (URL) ---
+  // Ejemplo: Si la URL es tusitio.com/?h=5, esto guardará el número 5. Si no hay nada, por defecto será 1.
+  const hospitalIdUrl = new URLSearchParams(window.location.search).get('h') || '1';
+
   // --- BUSCAR DATOS (SUPABASE) ---
   useEffect(() => {
     async function inicializarEncuesta() {  
@@ -72,10 +80,75 @@ export const EncuestaPage = () => {
     return true; // En sugerencias siempre se puede avanzar (es opcional)
   };
 
+
+  // --- ENVIAR A SUPABASE ---
+  const enviarEncuesta = async () => {
+    setEnviando(true);
+
+    try{
+      // 1. Guardar la Cabecera (Tabla: encuestas)
+      const {data: encuestaGuardada, error: errorEncuesta} = await supabase
+      .from('encuestas')
+      .insert({
+        hospital_id: parseInt(hospitalIdUrl), // Lo leeremos del QR.
+        planta: datosEncuesta.planta,
+        turno: datosEncuesta.turno,
+        sugerencia: datosEncuesta.sugerencia
+      })
+      .select() // Pedimos que nos devuelva la encuesta recién creada para saber su ID
+      .single();
+
+      if(errorEncuesta) throw errorEncuesta;
+
+      // 2. Preparar el detalle: Añadir el ID de la encuesta a las notas de las caritas
+      const respuestasParaGuardar = datosEncuesta.respuestas.map(resp => ({
+        encuesta_id: encuestaGuardada.id, // Enlazamos con la cabecera anterior
+        parametro_id: resp.parametro_id,
+        valor: resp.valor
+      }));
+
+      // 3. Guardar el detalle (Tabla: respuestas)
+      const {error: errorRespuestas} = await supabase
+      .from('respuestas')
+      .insert(respuestasParaGuardar);
+
+      if (errorRespuestas) throw errorRespuestas;
+
+
+      // 4. ¡Todo perfecto! Mostramos el agradecimiento
+      setEncuestaCompletada(true);
+
+
+    }catch(error: any){
+      console.error("❌ Error al guardar en Supabase:", error.message);
+      alert("Hubo un problema de conexión al enviar la encuesta. Por favor, inténtelo de nuevo.");
+    }finally{
+      setEnviando(false); // Quitamos el estado de carga del botón
+    }
+  }
+
+  // 1. Pantalla de carga inicial
   if (loading) return <div className="min-h-screen flex items-center justify-center text-sky-700 font-bold">Cargando encuesta real...</div>;
 
+
+  // 2. Pantalla de Éxito (Si ya se ha enviado)
+  if(encuestaCompletada){
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm">
+          ✓
+        </div>
+        <h2 className="text-3xl font-extrabold text-slate-900 mb-4">¡Encuesta Enviada!</h2>
+        <p className="text-lg text-slate-600 max-w-md">
+          Sus respuestas se han guardado correctamente. Muchas gracias por ayudarnos a mejorar el servicio de alimentación del hospital.
+        </p>
+      </div>
+    );
+  }
+
+  // 3. La Encuesta Normal (Carrusel)
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-24">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-24 animate-fade-in">
       
       {/* Cabecera minimalista fija arriba */}
       <header className="bg-white border-b border-slate-100 p-4 sticky top-0 z-10 shadow-sm">
@@ -100,15 +173,32 @@ export const EncuestaPage = () => {
               <p className="text-slate-600 mt-2">Por favor, indíquenos dónde se encuentra para empezar.</p>
             </div>
             
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Unidad / Planta</label>
-                <input type="text" value={datosEncuesta.planta} onChange={e => setDatosEncuesta(prev => ({...prev, planta: e.target.value}))} className="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-sky-300 outline-none text-lg" placeholder="Ej: Planta 3 - Hab 301" />
+                <label className="block text-sm font-bold text-slate-700 mb-2">Unidad / Planta actual</label>
+                <select 
+                  value={datosEncuesta.planta}
+                  onChange={e => setDatosEncuesta(prev => ({...prev, planta: e.target.value}))} 
+                  className="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-sky-300 outline-none text-lg cursor-pointer"
+                >
+                  <option value="" disabled>Seleccione su planta...</option>
+                  <option value="Planta 1">Planta 1</option>
+                  <option value="Planta 2">Planta 2</option>
+                  <option value="Planta 3">Planta 3</option>
+                  <option value="Planta 4">Planta 4</option>
+                  <option value="Maternidad">Maternidad</option>
+                  <option value="Urgencias">Urgencias</option>
+                  <option value="UCI">UCI</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Comida que valora</label>
-                <select value={datosEncuesta.turno} onChange={e => setDatosEncuesta(prev => ({...prev, turno: e.target.value as any}))} className="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-sky-300 outline-none text-lg cursor-pointer">
-                  <option value="" disabled>Seleccione...</option>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Comida que valora</label>
+                <select 
+                  value={datosEncuesta.turno} 
+                  onChange={e => setDatosEncuesta(prev => ({...prev, turno: e.target.value as any}))} 
+                  className="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-sky-300 outline-none text-lg cursor-pointer"
+                >
+                  <option value="" disabled>Seleccione el turno...</option>
                   <option value="Desayuno">☕ Desayuno</option>
                   <option value="Comida">🍲 Comida</option>
                   <option value="Cena">🥗 Cena</option>
@@ -142,7 +232,12 @@ export const EncuestaPage = () => {
               <h2 className="text-3xl font-extrabold text-slate-900">Para terminar...</h2>
               <p className="text-slate-600 mt-2">¿Tiene alguna sugerencia o recomendación de mejora?</p>
             </div>
-            <textarea value={datosEncuesta.sugerencia} onChange={e => setDatosEncuesta(prev => ({...prev, sugerencia: e.target.value}))} className="w-full p-5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-sky-300 outline-none min-h-[180px] bg-white shadow-sm text-lg" placeholder="Escriba aquí su mensaje (opcional)..."></textarea>
+            <textarea 
+              value={datosEncuesta.sugerencia} 
+              onChange={e => setDatosEncuesta(prev => ({...prev, sugerencia: e.target.value}))} 
+              className="w-full p-5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-sky-300 outline-none min-h-[180px] bg-white shadow-sm text-lg" 
+              placeholder="Escriba aquí su mensaje (opcional)..."
+            />
           </div>
         )}
 
@@ -166,8 +261,13 @@ export const EncuestaPage = () => {
               Siguiente →
             </button>
           ) : (
-            <button className="flex-2 bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors">
-              Finalizar y Enviar ✓
+            <button 
+              onClick={enviarEncuesta}
+              disabled={enviando}
+              className="flex-2 bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50" 
+              style={{ flex: 2 }}
+            >
+              {enviando ? 'Enviando...' : 'Finalizar y Enviar ✓'}
             </button>
           )}
         </div>
