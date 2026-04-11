@@ -16,7 +16,7 @@
 
 ## 🛠️ Tecnologías
 **Frontend:**
-* **Core:** React (v18+) + Vite + JavaScript (ES6+) / JSX.
+* **Core:** React (v18+) + Vite + JavaScript (ES6+) / TSX.
 * **Enrutamiento:** React Router DOM.
 * **Estilos:** Tailwind CSS.
 * **Visualización de Datos:** Recharts.
