@@ -4,6 +4,7 @@ import { BotonFlotante } from "./components/ui/BotonFlotante"
 import { LoginPage } from "./pages/admin/LoginPage"
 import { AdminLayout } from "./layouts/AdminLayout";
 import { DashboardPage } from "./pages/admin/DashboardPage";
+import { HistorialPage } from "./pages/admin/HistorialPage";
 
 // Pantallas temporales (placeholders)
 const HistorialTemporal = () => <div className="text-2xl font-bold text-slate-600">Historial (En construcción)</div>;
@@ -28,7 +29,7 @@ function App() {
         {/* Aquí inyectaremos el Dashboard de verdad en el siguiente paso */}
         <Route path="/admin/dashboard" element={<div className="text-2xl font-bold text-blue-600"><DashboardPage /></div>} />
 
-          <Route path="/admin/historial" element={<HistorialTemporal />} />
+          <Route path="/admin/historial" element={<HistorialPage />} />
           <Route path="/admin/reportes" element={<ReportesTemporal />} />
           <Route path="/admin/usuarios" element={<UsuariosTemporal />} />
         </Route>
