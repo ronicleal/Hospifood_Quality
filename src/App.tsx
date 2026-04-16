@@ -5,6 +5,7 @@ import { LoginPage } from "./pages/admin/LoginPage"
 import { AdminLayout } from "./layouts/AdminLayout";
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { HistorialPage } from "./pages/admin/HistorialPage";
+import { ReportesPage } from "./pages/admin/ReportesPage";
 
 // Pantallas temporales (placeholders)
 const HistorialTemporal = () => <div className="text-2xl font-bold text-slate-600">Historial (En construcción)</div>;
@@ -30,7 +31,7 @@ function App() {
         <Route path="/admin/dashboard" element={<div className="text-2xl font-bold text-blue-600"><DashboardPage /></div>} />
 
           <Route path="/admin/historial" element={<HistorialPage />} />
-          <Route path="/admin/reportes" element={<ReportesTemporal />} />
+          <Route path="/admin/reportes" element={<ReportesPage />} />
           <Route path="/admin/usuarios" element={<UsuariosTemporal />} />
         </Route>
        
