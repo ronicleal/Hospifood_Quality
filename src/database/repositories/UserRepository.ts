@@ -12,6 +12,15 @@ export interface LoginResult {
 
 // Interfaz (Contrato) de lo que debe hacer nuestro repositorio
 export interface UserRepository{
-    login(email: string, password: string): Promise<LoginResult>;
+    // Busca los datos y el rol de nuestro trabajador
+    getPerfilByUserId(userId: string): Promise<{ data: any | null; error: any }>;
+
+    // Manejo de sesión
+    login(email: string, password: string): Promise<{ data: any | null; error: any }>;
+    logout(): Promise<{ error: any }>;
+
+    
+
+
     
 }

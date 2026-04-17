@@ -93,13 +93,13 @@ export const ReportesPage = () => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement("canvas");
-                canvas.width = 400; // Ancho fijo del gráfico
-                canvas.height = 200; // Alto fijo del gráfico
+                canvas.width = 600; // Ancho fijo del gráfico
+                canvas.height = 300; // Alto fijo del gráfico
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.fillStyle = "#ffffff";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     resolve(canvas.toDataURL("image/png"));
                 } else {
                     reject("Error de Canvas");
@@ -120,67 +120,107 @@ export const ReportesPage = () => {
         const doc = new jsPDF();
         const reporteData = tiposReporte.find(r => r.id === tipoSeleccionado);
 
-        // --- 1. CABECERA ---
-        doc.setFontSize(22);
-        doc.setTextColor(37, 99, 235);
-        doc.text(`SES - HOSPIFOOD QUALITY`, 20, 30);
+        // --- 1. PORTADA / CABECERA PROFESIONAL ---
+        doc.setFillColor(37, 99, 235); // Fondo azul SES
+        doc.rect(0, 0, 210, 45, 'F');
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${reporteData?.titulo.toUpperCase()}`, 20, 40);
+        doc.setFontSize(24);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`SES - HOSPIFOOD QUALITY`, 20, 20);
 
+        doc.setFontSize(14);
+        doc.text(`INFORME DE CALIDAD Y SATISFACCIÓN DEL PACIENTE`, 20, 30);
+        doc.setFontSize(11);
+        doc.text(`Servicio de Alimentación del Hospital`, 20, 38);
+
+        // Bloque de Información del Reporte
+        doc.setTextColor(50, 50, 50);
         doc.setFontSize(12);
-        doc.text(`Hospital: ${NOMBRE_HOSPITAL}`, 20, 50);
-        doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 20, 57);
-        doc.text(`Total de encuestas analizadas: ${total}`, 20, 64);
+        doc.text(`Detalles del Documento:`, 20, 60);
 
-        // --- 2. CÁLCULOS PARA EL ANÁLISIS TEXTUAL DINÁMICO ---
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Centro Hospitalario: ${NOMBRE_HOSPITAL}`, 25, 68);
+        doc.text(`Tipo de Informe: ${reporteData?.titulo.toUpperCase()}`, 25, 74);
+        doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 25, 80);
+        doc.text(`Volumen de Muestra: ${total} encuestas procesadas`, 25, 86);
+
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, 92, 190, 92); // Línea separadora
+
+        // --- 2. CONCLUSIÓN ANALÍTICA ---
         const mediaGlobal = (encuestasFiltradas.reduce((acc, curr) => acc + curr.notaMedia, 0) / total).toFixed(1);
         const turnosValidos = dataTurnos.filter(t => t.nota > 0);
 
         const mejorTurno = turnosValidos.length > 0
             ? turnosValidos.reduce((prev, current) => (prev.nota > current.nota) ? prev : current)
-            : { name: '-', nota: 0 };
+            : { name: 'N/A', nota: 0 };
 
         const peorTurno = turnosValidos.length > 0
             ? turnosValidos.reduce((prev, current) => (prev.nota < current.nota) ? prev : current)
-            : { name: '-', nota: 0 };
+            : { name: 'N/A', nota: 0 };
 
-        const textoAnalisis = `Durante el periodo seleccionado (${tipoSeleccionado}), se han recogido un total de ${total} encuestas. La satisfacción general media de los pacientes se sitúa en un ${mediaGlobal} sobre 5. Analizando los datos por servicio de comidas, destaca positivamente el turno de ${mejorTurno.name} con la puntuación más alta (${mejorTurno.nota}/5), mientras que el turno de ${peorTurno.name} (${peorTurno.nota}/5) presenta la mayor área de mejora prioritaria.`;
+        const textoAnalisis = `Durante el periodo evaluado, el índice de satisfacción general de los pacientes respecto al servicio de comidas se sitúa en un ${mediaGlobal} sobre 5.0. \n\nAnalizando el desglose por turnos, se observa que el servicio de ${mejorTurno.name} presenta el mayor índice de aceptación (${mejorTurno.nota}/5.0). Por el contrario, los resultados indican que el turno de ${peorTurno.name} (${peorTurno.nota}/5.0) requiere una supervisión prioritaria para identificar posibles deficiencias en temperatura, presentación o calidad del emplatado.`;
 
-        doc.setFontSize(14);
+        doc.setFontSize(13);
         doc.setTextColor(37, 99, 235);
-        doc.text("Conclusión Analítica Ejecutiva:", 20, 80);
-        doc.setFontSize(11);
+        doc.text("1. Resumen Ejecutivo", 20, 105);
+
+        doc.setFontSize(10);
         doc.setTextColor(60, 60, 60);
-        // splitTextToSize rompe el párrafo para que no se salga de los márgenes del folio
         const lineasTexto = doc.splitTextToSize(textoAnalisis, 170);
-        doc.text(lineasTexto, 20, 88);
+        doc.text(lineasTexto, 20, 113);
 
         // --- 3. GRÁFICOS VISUALES ---
-        doc.setFontSize(14);
+        doc.setFontSize(13);
         doc.setTextColor(37, 99, 235);
-        doc.text("Análisis Gráfico:", 20, 115);
+        doc.text("2. Representación Visual de Datos", 20, 155);
 
         try {
             const imgPie = await chartToImage(chartPieRef);
             const imgBar = await chartToImage(chartBarRef);
-            doc.addImage(imgPie, 'PNG', 15, 120, 85, 45);
-            doc.addImage(imgBar, 'PNG', 105, 120, 85, 45);
+            // Ajustamos el tamaño para la nueva resolución
+            doc.addImage(imgPie, 'PNG', 15, 165, 85, 42);
+            doc.addImage(imgBar, 'PNG', 105, 165, 85, 42);
+            
+            // Textos explicativos debajo de los gráficos
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            doc.text("Fig 1. Distribución porcentual de las valoraciones.", 20, 215);
+            doc.text("Fig 2. Media de puntuación segmentada por servicio.", 110, 215);
         } catch (error) {
             console.error("Error al capturar los gráficos:", error);
         }
 
-        // --- 4. TABLA DE DATOS (En página nueva) ---
+        // --- 4. TABLA DE DATOS (Página 2) ---
         doc.addPage();
-        doc.text("Desglose detallado de valoraciones:", 20, 20);
+
+        doc.setFontSize(13);
+        doc.setTextColor(37, 99, 235);
+        doc.text("3. Registro Detallado de Feedback", 20, 20);
+
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        doc.text("A continuación se detallan las respuestas individuales y comentarios proporcionados por los pacientes:", 20, 26);
+
         autoTable(doc, {
-            startY: 25,
-            head: [['Fecha', 'Turno', 'Nota Media', 'Comentarios']],
-            body: encuestasFiltradas.map(e => [e.fecha, e.turno, `${e.notaMedia} / 5`, e.sugerencia]),
-            styles: { fontSize: 9 },
-            headStyles: { fillColor: [37, 99, 235] }
+            startY: 32,
+            head: [['Fecha', 'Turno', 'Nota Media', 'Comentarios del Paciente']],
+            body: encuestasFiltradas.map(e => [e.fecha, e.turno, `${e.notaMedia} / 5`, e.sugerencia || "Sin comentarios."]),
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            margin: { top: 30 }
         });
+
+        // Pie de página
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Documento generado por Hospifood Quality - Página ${i} de ${pageCount}`, 20, 290);
+        }
 
         doc.save(`Hospifood_${reporteData?.titulo.replace(" ", "_")}.pdf`);
 
@@ -190,13 +230,13 @@ export const ReportesPage = () => {
         const reporteData = tiposReporte.find(r => r.id === tipoSeleccionado);
         const total = getEncuestasDelPeriodo();
 
-        const subject = encodeURIComponent(`Resultados: ${reporteData?.titulo} - Hospifood Quality`);
+        const subject = encodeURIComponent(`Informe de Calidad: ${reporteData?.titulo} - Hospifood`);
         const body = encodeURIComponent(
-            `Hola,\n\nAdjunto los resultados del ${reporteData?.titulo} correspondientes al ${NOMBRE_HOSPITAL}.\n\n` +
-            `Resumen rápido:\n` +
-            `- Total de encuestas recogidas: ${total}\n\n` +
-            `Por favor, revise el PDF adjunto para ver las estadísticas detalladas, análisis por dietas y los comentarios de los pacientes.\n\n` +
-            `Un saludo,\nEquipo de Calidad SES.`
+            `Estimada Directiva,\n\nAdjunto remitimos el ${reporteData?.titulo} correspondiente al ${NOMBRE_HOSPITAL}.\n\n` +
+            `Resumen de Datos:\n` +
+            `• Muestra analizada: ${total} encuestas de pacientes.\n\n` +
+            `Por favor, revisen el PDF adjunto para consultar el desglose gráfico, la detección de áreas de mejora por turnos y el listado de comentarios directos de los pacientes.\n\n` +
+            `Atentamente,\nDepartamento de Calidad - Hospifood SES.`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };

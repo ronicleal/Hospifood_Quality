@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { DashboardData } from "../../interfaces/Estadisticas";
 import { createStatsRepository } from "../../database/repositories";
-import { StatsCards } from "../../components/admin/StatsCards";
+import { StatsCards } from "../../components/panel/StatsCards";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 

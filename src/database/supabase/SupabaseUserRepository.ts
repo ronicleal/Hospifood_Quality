@@ -1,44 +1,49 @@
-import type { LoginResult, UserRepository } from "../repositories/UserRepository";
+// src/database/supabase/SupabaseUserRepository.ts
 import { supabase } from "./Client";
+import type { UserRepository } from "../repositories/UserRepository";
 
 export class SupabaseUserRepository implements UserRepository {
-    
-    async login(email: string, password: string): Promise<LoginResult> {
-        try {
-            // 1. Autenticación segura con Supabase Auth
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+  
+  async getPerfilByUserId(userId: string) {
+    const { data, error } = await supabase
+      .from('perfiles') 
+      .select('*')
+      .eq('id', userId)
+      .single();
+      
+    return { data, error };
+  }
 
-            if (authError) return { error: authError };
-            if (!authData.user) return { error: { message: 'No se recibió usuario tras el login' } };
+  async login(email: string, password: string) {
+    // 1. Autenticar en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-            // 2. Buscar el Perfil en la tabla pública
-            const { data: perfilData, error: perfilError } = await supabase
-                .from('perfiles')
-                .select('*')
-                .eq('id', authData.user.id)
-                .single();
+    if (authError) return { data: null, error: authError };
+    if (!authData.user) return { data: null, error: { message: 'No se recibió usuario tras login' } };
 
-            if (perfilError) {
-                // Si no hay perfil, cerramos la sesión por seguridad
-                await supabase.auth.signOut();
-                return { error: perfilError };
-            }
+    // 2. Buscar si el usuario tiene un perfil y un rol asignado en nuestra tabla
+    const { data: profileData, error: profileError } = await this.getPerfilByUserId(authData.user.id);
 
-            // 3. Devolvemos todo empaquetado y limpio
-            return {
-                data: {
-                    user: authData.user,
-                    perfil: perfilData,
-                },
-            };
-
-        } catch (error) {
-            console.error('Error en SupabaseUserRepository.login:', error);
-            return { error };
-        }
+    // Medida de seguridad: Si está registrado pero no tiene perfil (no es trabajador del hospital), lo echamos
+    if (profileError || !profileData) {
+      await supabase.auth.signOut();
+      return { data: null, error: profileError || { message: 'Usuario sin perfil asignado' } };
     }
 
+    return {
+      data: {
+        user: authData.user,
+        profile: profileData,
+      },
+      error: null
+    };
+  }
+
+  async logout() {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  }
 }
