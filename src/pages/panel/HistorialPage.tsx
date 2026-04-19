@@ -111,7 +111,7 @@ export const HistorialPage = () => {
             {/* Cabecera y Controles */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight">Historial y Reportes</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight">Historial de Encuestas</h1>
                     <p className="text-muted-foreground mt-1">Filtra y analiza los datos recopilados</p>
                 </div>
                 <Button onClick={exportarPDF} className="gap-2 bg-[#2563EB] hover:bg-blue-700 text-white">

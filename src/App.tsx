@@ -17,10 +17,11 @@ import { DashboardPage } from "./pages/panel/DashboardPage";
 import { HistorialPage } from "./pages/panel/HistorialPage"; 
 import { ReportesPage } from "./pages/panel/ReportesPage"; 
 import { BotonFlotante } from "./components/ui/BotonFlotante";
+import { TurnosPage } from "./pages/gestor/TurnosPage";
 
 // Placeholders para los CRUDs que haremos luego
 const UsuariosCRUD = () => <div className="p-8 text-2xl font-bold">CRUD de Usuarios (Zona Admin)</div>;
-const TurnosCRUD = () => <div className="p-8 text-2xl font-bold">CRUD de Turnos (Zona Gestor)</div>;
+
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -51,7 +52,7 @@ function App() {
             <Route path="/panel/dashboard" element={<DashboardPage />} />
             <Route path="/panel/historial" element={<HistorialPage />} />
             <Route path="/panel/reportes" element={<ReportesPage />} />
-            <Route path="/panel/turnos" element={<TurnosCRUD />} />
+            <Route path="/panel/turnos" element={<TurnosPage />} />
 
             {/* ZONA VIP (Protegida por AdminRoute) */}
             <Route element={<AdminRoute />}>

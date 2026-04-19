@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { LayoutDashboard, History, FileText, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, History, FileText, LogOut, Users, Clock } from "lucide-react";
 
 import { useAuthStore } from "../store/authStore";
 import { createUserRepository } from "../database/repositories";
@@ -7,13 +7,13 @@ import { createUserRepository } from "../database/repositories";
 export const PanelLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     const { profile, isAdmin, clearSession } = useAuthStore();
     const userRepo = createUserRepository();
 
     const handleLogout = async () => {
-        await userRepo.logout(); 
-        clearSession(); 
+        await userRepo.logout();
+        clearSession();
         // 1. Al salir, vamos a /login
         navigate('/login');
     };
@@ -41,19 +41,26 @@ export const PanelLayout = () => {
                             >
                                 <LayoutDashboard size={18} /> Inicio
                             </Link>
-                            
+
                             <Link
                                 to="/panel/historial"
                                 className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 ${isActive('/panel/historial') ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                             >
                                 <History size={18} /> Historial
                             </Link>
-                            
+
                             <Link
                                 to="/panel/reportes"
                                 className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 ${isActive('/panel/reportes') ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                             >
                                 <FileText size={18} /> Reportes
+                            </Link>
+
+                            <Link
+                                to="/panel/turnos"
+                                className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 ${isActive('/panel/turnos') ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <Clock size={18} /> Turnos
                             </Link>
 
                             {isAdmin && (
