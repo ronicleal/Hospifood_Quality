@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
-import { LayoutDashboard, History, FileText, LogOut, Users, Clock } from "lucide-react";
+import { LayoutDashboard, History, FileText, LogOut, Users, Clock, ListChecks } from "lucide-react";
 
 import { useAuthStore } from "../store/authStore";
 import { createUserRepository } from "../database/repositories";
@@ -61,6 +61,13 @@ export const PanelLayout = () => {
                                 className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 ${isActive('/panel/turnos') ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                             >
                                 <Clock size={18} /> Turnos
+                            </Link>
+
+                            <Link
+                                to="/panel/parametros"
+                                className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 ${isActive('/panel/parametros') ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <ListChecks size={18} /> Parámetros
                             </Link>
 
                             {isAdmin && (

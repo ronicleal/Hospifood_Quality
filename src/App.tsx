@@ -18,6 +18,7 @@ import { HistorialPage } from "./pages/panel/HistorialPage";
 import { ReportesPage } from "./pages/panel/ReportesPage"; 
 import { BotonFlotante } from "./components/ui/BotonFlotante";
 import { TurnosPage } from "./pages/gestor/TurnosPage";
+import { ParametrosPage } from "./pages/gestor/ParametrosPage";
 
 // Placeholders para los CRUDs que haremos luego
 const UsuariosCRUD = () => <div className="p-8 text-2xl font-bold">CRUD de Usuarios (Zona Admin)</div>;
@@ -53,6 +54,7 @@ function App() {
             <Route path="/panel/historial" element={<HistorialPage />} />
             <Route path="/panel/reportes" element={<ReportesPage />} />
             <Route path="/panel/turnos" element={<TurnosPage />} />
+            <Route path="/panel/parametros" element={<ParametrosPage />} />
 
             {/* ZONA VIP (Protegida por AdminRoute) */}
             <Route element={<AdminRoute />}>

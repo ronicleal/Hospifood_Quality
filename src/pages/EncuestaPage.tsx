@@ -36,18 +36,23 @@ export const EncuestaPage = () => {
 
   // --- BUSCAR DATOS (SUPABASE) ---
   useEffect(() => {
-    async function inicializarEncuesta() {  
-      // A. Buscamos las Preguntas
+    async function inicializarEncuesta() {
+      const hospitalActivo = parseInt(hospitalIdUrl);
+
+      // A. Buscamos las Preguntas (Solo ACTIVAS y del HOSPITAL ACTUAL)
       const { data: preguntasData, error: preguntasError } = await supabase
         .from('parametros')
         .select('*')
+        .eq('activo', true) 
+        .eq('hospital_id', hospitalActivo) 
         .order('id', { ascending: true });
 
-      // B. Buscamos los Turnos (Solo los activos)
+      // B. Buscamos los Turnos (Solo ACTIVOS y del HOSPITAL ACTUAL)
       const { data: turnosData, error: turnosError } = await supabase
         .from('turnos')
         .select('*')
         .eq('activo', true) 
+        .eq('hospital_id', hospitalActivo) 
         .order('id', { ascending: true });
 
       if (preguntasError || turnosError) {
@@ -62,7 +67,7 @@ export const EncuestaPage = () => {
       setLoading(false);
     }
     inicializarEncuesta();
-  }, []);
+  }, [hospitalIdUrl]);
 
   // --- LÓGICA DE NAVEGACIÓN ---
   const totalPreguntas = preguntasDB.length;
