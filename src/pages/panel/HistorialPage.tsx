@@ -3,14 +3,19 @@ import type { EncuestaHistorial } from "../../database/repositories/HistorialRep
 import { createHistorialRepository } from "../../database/repositories";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { Download, FilterX, Search } from "lucide-react";
+import { AlertCircle, Download, FilterX, Search } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Card, CardContent } from "../../components/ui/card";
 import { Label } from "recharts";
+import { useAuthStore } from "../../store/authStore";
 
 export const HistorialPage = () => {
+    // 1. TODOS LOS HOOKS ARRIBA
+    const { profile, isAdmin } = useAuthStore();
+    const misHospitales = profile?.hospitales || [];
+    
     const [encuestas, setEncuestas] = useState<EncuestaHistorial[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -20,32 +25,51 @@ export const HistorialPage = () => {
     const [turnoFiltro, setTurnoFiltro] = useState("Todos");
     const [searchText, setSearchText] = useState("");
 
-
     const historialRepo = createHistorialRepository();
 
     useEffect(() => {
         async function loadData() {
-            const { data } = await historialRepo.getHistorial(1); // Hospital ID 1
+            // Validamos que el gestor tenga hospitales antes de consultar
+            if (!isAdmin && misHospitales.length === 0) {
+                setLoading(false);
+                return;
+            }
+
+            // Pasamos los hospitales y el rol a la consulta
+            const { data } = await historialRepo.getHistorial(misHospitales, isAdmin); 
             if (data) setEncuestas(data);
             setLoading(false);
         }
 
         loadData();
-    }, []);
+    }, [misHospitales, isAdmin]);
 
-    // MOTOR DE FILTRADO MÚLTIPLE
+    // 2. EL MURO DE SEGURIDAD
+    if (!isAdmin && misHospitales.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <AlertCircle size={40} />
+                </div>
+                <h2 className="text-3xl font-extrabold text-foreground mb-4">Cuenta Pendiente de Activación</h2>
+                <p className="text-lg text-muted-foreground max-w-md">
+                    Tu cuenta ha sido creada correctamente, pero <b>aún no tienes ningún hospital asignado</b>. 
+                    <br/><br/>
+                    Por favor, contacta con el Administrador del SES para que te asigne a tu centro correspondiente.
+                </p>
+            </div>
+        );
+    }
+
+    // 3. MOTOR DE FILTRADO MÚLTIPLE
     const encuestasFiltradas = encuestas.filter(e => {
-        // 1. Filtro de Búsqueda (Texto en sugerencias)
         const matchText = e.sugerencia.toLowerCase().includes(searchText.toLowerCase());
-
-        // 2. Filtro de Turno
         const matchTurno = turnoFiltro === "Todos" || e.turno === turnoFiltro;
 
-        // 3. Filtro de Fechas
         let matchFecha = true;
         if (e.fechaOriginal) {
             const fechaEncuesta = new Date(e.fechaOriginal);
-            fechaEncuesta.setHours(0, 0, 0, 0); // Ignoramos la hora para comparar solo el día
+            fechaEncuesta.setHours(0, 0, 0, 0);
 
             if (fechaInicio) {
                 const fInicio = new Date(fechaInicio);
@@ -60,10 +84,8 @@ export const HistorialPage = () => {
         }
 
         return matchText && matchTurno && matchFecha;
-
     });
 
-    // Función para limpiar filtros
     const limpiarFiltros = () => {
         setFechaInicio("");
         setFechaFin("");
@@ -71,7 +93,6 @@ export const HistorialPage = () => {
         setSearchText("");
     };
 
-    // Generador de PDF 
     const exportarPDF = () => {
         const doc = new jsPDF();
         doc.text("Reporte de Satisfacción - SES Hospifood", 14, 20);
@@ -90,25 +111,23 @@ export const HistorialPage = () => {
             startY: 30,
             theme: 'grid',
             styles: { fontSize: 10, cellPadding: 3 },
-            headStyles: { fillColor: [37, 99, 235] } // Azul SES en la cabecera del PDF
+            headStyles: { fillColor: [37, 99, 235] } 
         });
 
         doc.save("Reporte_Hospifood_SES.pdf");
     };
 
-    // Helper para pintar el Badge según la nota
     const getBadgeVariant = (nota: number) => {
-        if (nota >= 4.5) return "default"; // Azul/Verde según theme
-        if (nota >= 3.0) return "secondary"; // Gris/Azul claro
-        return "destructive"; // Rojo (Malo)
+        if (nota >= 4.5) return "default"; 
+        if (nota >= 3.0) return "secondary"; 
+        return "destructive"; 
     };
 
     if (loading) return <div className="p-10 text-center text-muted-foreground font-medium">Cargando registros...</div>;
 
-
+    // 4. EL RENDERIZADO
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Cabecera y Controles */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight">Historial de Encuestas</h1>
@@ -119,10 +138,8 @@ export const HistorialPage = () => {
                 </Button>
             </div>
 
-            {/* SECCIÓN DE FILTROS*/}
             <Card className="border-border shadow-sm">
                 <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-
                     <div className="space-y-2">
                         <Label>Fecha Inicio</Label>
                         <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
@@ -135,7 +152,6 @@ export const HistorialPage = () => {
 
                     <div className="space-y-2">
                         <Label>Turno</Label>
-                        {/* Select nativo estilizado como Input de Shadcn */}
                         <select
                             value={turnoFiltro}
                             onChange={(e) => setTurnoFiltro(e.target.value)}
@@ -166,11 +182,9 @@ export const HistorialPage = () => {
                             <FilterX size={16} /> Limpiar
                         </Button>
                     </div>
-
                 </CardContent>
             </Card>
 
-            {/* TABLA DE RESULTADOS */}
             <div className="border border-border rounded-xl bg-card overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
@@ -211,12 +225,6 @@ export const HistorialPage = () => {
                     </table>
                 </div>
             </div>
-
-
-
-
         </div>
     )
 }
-
-

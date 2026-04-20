@@ -9,6 +9,6 @@ export interface EncuestaHistorial {
 }
 
 export interface HistorialRepository {
-    getHistorial(hospitalId: number): Promise<{ data?: EncuestaHistorial[]; error?: any}>;
+    getHistorial(hospitalesIds: number[], isAdmin?: boolean): Promise<{ data?: EncuestaHistorial[]; error?: any; }>;
 }
 

@@ -1,16 +1,20 @@
-// src/pages/admin/ReportesPage.tsx
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Building2, Calendar, CalendarDays, CalendarRange, CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react";
+import { AlertCircle, Building2, Calendar, CalendarDays, CalendarRange, CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import type { EncuestaHistorial } from "../../database/repositories/HistorialRepository";
 import { createHistorialRepository } from "../../database/repositories";
 import { Badge } from "../../components/ui/badge";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { useAuthStore } from "../../store/authStore";
 
 export const ReportesPage = () => {
+    // 1. TODOS LOS HOOKS ARRIBA DEL TODO
+    const { profile, isAdmin } = useAuthStore();
+    const misHospitales = profile?.hospitales || [];
+
     const [tipoSeleccionado, setTipoSeleccionado] = useState<"diario" | "semanal" | "mensual">("semanal");
     const [encuestas, setEncuestas] = useState<EncuestaHistorial[]>([]);
     const [loading, setLoading] = useState(true);
@@ -18,18 +22,43 @@ export const ReportesPage = () => {
     const chartPieRef = useRef<HTMLDivElement>(null);
     const chartBarRef = useRef<HTMLDivElement>(null);
 
-    const NOMBRE_HOSPITAL = "Hospital Universitario (SES)";
+    const NOMBRE_HOSPITAL = isAdmin ? "Múltiples Centros (Global SES)" : "Hospital (Gestión Local)";
     const historialRepo = createHistorialRepository();
 
     useEffect(() => {
         async function load() {
-            const { data } = await historialRepo.getHistorial(1);
+            // Si es un gestor sin hospitales, no hacemos la consulta
+            if (!isAdmin && misHospitales.length === 0) {
+                setLoading(false);
+                return;
+            }
+
+            // Pasamos los hospitales y el rol al repositorio
+            const { data } = await historialRepo.getHistorial(misHospitales, isAdmin);
             if (data) setEncuestas(data);
             setLoading(false);
         }
         load();
-    }, []);
+    }, [misHospitales, isAdmin]);
 
+    // 2. EL MURO DE SEGURIDAD (Después de los Hooks)
+    if (!isAdmin && misHospitales.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <AlertCircle size={40} />
+                </div>
+                <h2 className="text-3xl font-extrabold text-foreground mb-4">Cuenta Pendiente de Activación</h2>
+                <p className="text-lg text-muted-foreground max-w-md">
+                    Tu cuenta ha sido creada correctamente, pero <b>aún no tienes ningún hospital asignado</b>. 
+                    <br/><br/>
+                    Por favor, contacta con el Administrador del SES para que te asigne a tu centro correspondiente.
+                </p>
+            </div>
+        );
+    }
+
+    // 3. LÓGICA DE DATOS
     const encuestasFiltradas = encuestas.filter(e => {
         if (!e.fechaOriginal) return false;
         const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -76,7 +105,6 @@ export const ReportesPage = () => {
         "Recomendaciones de mejora"
     ];
 
-    // Función nativa para convertir SVG a PNG sin librerías externas ---
     const chartToImage = async (ref: React.RefObject<HTMLDivElement | null>): Promise<string> => {
         return new Promise((resolve, reject) => {
             if (!ref.current) return reject("No ref");
@@ -93,8 +121,8 @@ export const ReportesPage = () => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement("canvas");
-                canvas.width = 600; // Ancho fijo del gráfico
-                canvas.height = 300; // Alto fijo del gráfico
+                canvas.width = 600; 
+                canvas.height = 300; 
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.fillStyle = "#ffffff";
@@ -120,8 +148,7 @@ export const ReportesPage = () => {
         const doc = new jsPDF();
         const reporteData = tiposReporte.find(r => r.id === tipoSeleccionado);
 
-        // --- 1. PORTADA / CABECERA PROFESIONAL ---
-        doc.setFillColor(37, 99, 235); // Fondo azul SES
+        doc.setFillColor(37, 99, 235); 
         doc.rect(0, 0, 210, 45, 'F');
 
         doc.setFontSize(24);
@@ -133,7 +160,6 @@ export const ReportesPage = () => {
         doc.setFontSize(11);
         doc.text(`Servicio de Alimentación del Hospital`, 20, 38);
 
-        // Bloque de Información del Reporte
         doc.setTextColor(50, 50, 50);
         doc.setFontSize(12);
         doc.text(`Detalles del Documento:`, 20, 60);
@@ -146,9 +172,8 @@ export const ReportesPage = () => {
         doc.text(`Volumen de Muestra: ${total} encuestas procesadas`, 25, 86);
 
         doc.setDrawColor(200, 200, 200);
-        doc.line(20, 92, 190, 92); // Línea separadora
+        doc.line(20, 92, 190, 92); 
 
-        // --- 2. CONCLUSIÓN ANALÍTICA ---
         const mediaGlobal = (encuestasFiltradas.reduce((acc, curr) => acc + curr.notaMedia, 0) / total).toFixed(1);
         const turnosValidos = dataTurnos.filter(t => t.nota > 0);
 
@@ -171,7 +196,6 @@ export const ReportesPage = () => {
         const lineasTexto = doc.splitTextToSize(textoAnalisis, 170);
         doc.text(lineasTexto, 20, 113);
 
-        // --- 3. GRÁFICOS VISUALES ---
         doc.setFontSize(13);
         doc.setTextColor(37, 99, 235);
         doc.text("2. Representación Visual de Datos", 20, 155);
@@ -179,11 +203,9 @@ export const ReportesPage = () => {
         try {
             const imgPie = await chartToImage(chartPieRef);
             const imgBar = await chartToImage(chartBarRef);
-            // Ajustamos el tamaño para la nueva resolución
             doc.addImage(imgPie, 'PNG', 15, 165, 85, 42);
             doc.addImage(imgBar, 'PNG', 105, 165, 85, 42);
             
-            // Textos explicativos debajo de los gráficos
             doc.setFontSize(8);
             doc.setTextColor(120, 120, 120);
             doc.text("Fig 1. Distribución porcentual de las valoraciones.", 20, 215);
@@ -192,9 +214,7 @@ export const ReportesPage = () => {
             console.error("Error al capturar los gráficos:", error);
         }
 
-        // --- 4. TABLA DE DATOS (Página 2) ---
         doc.addPage();
-
         doc.setFontSize(13);
         doc.setTextColor(37, 99, 235);
         doc.text("3. Registro Detallado de Feedback", 20, 20);
@@ -213,7 +233,6 @@ export const ReportesPage = () => {
             margin: { top: 30 }
         });
 
-        // Pie de página
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
@@ -223,7 +242,6 @@ export const ReportesPage = () => {
         }
 
         doc.save(`Hospifood_${reporteData?.titulo.replace(" ", "_")}.pdf`);
-
     };
 
     const enviarEmail = () => {
@@ -261,7 +279,6 @@ export const ReportesPage = () => {
                 <div ref={chartBarRef} style={{ width: "400px", height: "250px", backgroundColor: "#ffffff", padding: "10px" }}>
                     <h4 style={{ textAlign: "center", fontFamily: "sans-serif", color: "#333", fontWeight: "bold", marginBottom: "10px" }}>Nota Media por Turnos</h4>
                     <BarChart width={400} height={200} data={dataTurnos}>
-                        {/* Aquí recuperamos la cuadrícula (rayas) con un color gris suave explícito en HEX */}
                         <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" vertical={false} />
                         <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
                         <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} domain={[0, 5]} />

@@ -46,4 +46,26 @@ export class SupabaseUserRepository implements UserRepository {
     const { error } = await supabase.auth.signOut();
     return { error };
   }
+
+
+  async register(email: string, contrasena: string, nombreCompleto: string) {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: contrasena,
+        });
+
+        if (error) return { user: null, error };
+
+        if (data.user) {
+            const { error: profileError } = await supabase.from('perfiles').insert([{
+                id: data.user.id,
+                nombre_completo: nombreCompleto,
+                rol: 'gestor' 
+            }]);
+
+            if (profileError) return { user: null, error: profileError };
+        }
+
+        return { user: data.user, error: null };
+    }
 }

@@ -1,16 +1,22 @@
+import type { Parametro } from "../../interfaces/Parametro";
 import type { ParametroRepository } from "../repositories/ParametroRepository";
 import { supabase } from "./Client";
 
 export class SupabaseParametroRepository implements ParametroRepository {
     
-    async getParametros(hospitalesIds: number[]) {
-        if (!hospitalesIds || hospitalesIds.length === 0) return { data: [], error: null };
-
-        const { data, error } = await supabase
+    async getParametros(hospitalesIds: number[], isAdmin?: boolean): Promise<{ data: Parametro[] | null; error: any }> {
+        
+        let query = supabase
             .from('parametros')
-            .select('*')
-            .in('hospital_id', hospitalesIds) 
+            .select('*, hospitales(nombre)')
             .order('id', { ascending: true });
+
+        if (!isAdmin) {
+            if (!hospitalesIds || hospitalesIds.length === 0) return { data: [], error: null };
+            query = query.in('hospital_id', hospitalesIds);
+        }
+
+        const { data, error } = await query;
         return { data, error };
     }
 

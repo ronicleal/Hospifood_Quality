@@ -3,22 +3,35 @@ import type { StatsRepository } from "../repositories/StatsRepository";
 import { supabase } from "./Client";
 
 export class SupabaseStatsRepository implements StatsRepository {
-    async getDashboardStats(hospitalId: number): Promise<{ data?: DashboardData; error?: any; }> {
+    
+    async getDashboardStats(hospitalesIds: number[], isAdmin: boolean = false): Promise<{ data?: DashboardData; error?: any; }> {
         try {
-            // 1. Obtener total de encuestas y sugerencias
-            const { data: encuestas, error: errEnc } = await supabase
+            // 1. Preparamos la consulta base (sin ejecutarla aún)
+            let query = supabase
                 .from('encuestas')
-                .select('id, turno, sugerencia, fecha')
-                .eq('hospital_id', hospitalId);
+                .select('id, turno, sugerencia, fecha');
+
+            // 2. Aplicamos el Muro de Seguridad si no es Administrador Global
+            if (!isAdmin) {
+                // Si es un gestor sin hospitales, cortamos aquí devolviendo contadores a cero
+                if (!hospitalesIds || hospitalesIds.length === 0) {
+                    return { data: { resumen: { totalEncuestas: 0, notaMedia: 0, mejorTurno: '-', totalSugerencias: 0 }, satisfaccion: [], evolucion: [] } };
+                }
+                // Si tiene hospitales, filtramos para que solo traiga los suyos
+                query = query.in('hospital_id', hospitalesIds);
+            }
+
+            // 3. Ejecutamos la consulta final
+            const { data: encuestas, error: errEnc } = await query;
 
             if (errEnc) throw errEnc;
 
-            // Si no hay encuestas, devolvemos todo a cero para no dar error
+            // Si no hay encuestas registradas en esos hospitales, devolvemos todo a cero
             if (!encuestas || encuestas.length === 0) {
                 return { data: { resumen: { totalEncuestas: 0, notaMedia: 0, mejorTurno: '-', totalSugerencias: 0 }, satisfaccion: [], evolucion: [] } };
             }
 
-            // 2. Obtener todas las respuestas de esas encuestas para calcular la media
+            // 4. Obtener todas las respuestas de esas encuestas para calcular la media
             const { data: respuestas, error: errResp } = await supabase
                 .from('respuestas')
                 .select('encuesta_id, valor')
@@ -42,7 +55,7 @@ export class SupabaseStatsRepository implements StatsRepository {
                 color: n === 5 ? '#22c55e' : n === 4 ? '#84cc16' : n === 3 ? '#eab308' : n === 2 ? '#f97316' : '#ef4444'
             })).filter(item => item.value > 0);
 
-            // --- 4. PROCESAMIENTO COMPLEJO: EVOLUCIÓN SEMANAL ---
+            // --- PROCESAMIENTO COMPLEJO: EVOLUCIÓN SEMANAL ---
 
             // Diccionario inicial con contadores a cero
             const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

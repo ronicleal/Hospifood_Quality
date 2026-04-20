@@ -1,98 +1,143 @@
-// src/components/form/LoginForm.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserRepository } from "../../database/repositories";
-
-// Importamos nuestros nuevos componentes Shadcn
+import { useAuthStore } from "../../store/authStore";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 export const LoginForm = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
     const navigate = useNavigate();
-    const userRepository = createUserRepository();
+    const { initialize } = useAuthStore();
+    const userRepo = createUserRepository();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    // Estado para alternar entre Login y Registro
+    const [isLogin, setIsLogin] = useState(true);
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [nombreCompleto, setNombreCompleto] = useState(""); // Solo para registro
+    
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
+        setErrorMsg("");
 
-        try {
-            const result = await userRepository.login(email, password);
-
-            if (result.error) {
-                setError("Correo o contraseña incorrectos. Por favor, revíselos.");
+        if (isLogin) {
+            // LÓGICA DE INICIO DE SESIÓN
+            const { error } = await userRepo.login(email, password);
+            if (error) {
+                setErrorMsg("Credenciales incorrectas o usuario no encontrado.");
+                setLoading(false);
+            } else {
+                await initialize();
+                navigate('/panel/dashboard');
+            }
+        } else {
+            // LÓGICA DE REGISTRO
+            if (!nombreCompleto.trim()) {
+                setErrorMsg("El nombre completo es obligatorio.");
                 setLoading(false);
                 return;
             }
-
-            if (result.data) {
-                const perfil = result.data.perfil;
-                if (perfil.rol === 'admin') navigate('/admin/usuarios');
-                else navigate('/admin/dashboard');
+            
+            const { error } = await userRepo.register(email, password, nombreCompleto);
+            if (error) {
+                setErrorMsg(error.message || "Error al crear la cuenta. La contraseña debe tener al menos 6 caracteres.");
+                setLoading(false);
+            } else {
+                // El registro hace login automático en Supabase
+                await initialize(); 
+                navigate('/panel/dashboard');
             }
-        } catch (err: any) {
-            setError("Ocurrió un error inesperado de conexión.");
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <>
-            {error && (
-                <div className="bg-destructive/15 text-destructive p-3 rounded-lg text-sm font-bold mb-4 text-center border border-destructive/20">
-                    {error}
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="text-center mb-8">
+                <h2 className="text-3xl font-extrabold text-foreground">
+                    {isLogin ? "Bienvenido de nuevo" : "Crear cuenta Gestor"}
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                    {isLogin 
+                        ? "Introduce tus credenciales para acceder al panel." 
+                        : "Regístrate para solicitar acceso a la gestión de calidad."}
+                </p>
+            </div>
+
+            {errorMsg && (
+                <div className="mb-6 p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg text-sm text-center font-medium">
+                    {errorMsg}
                 </div>
             )}
 
-            <form className="space-y-5" onSubmit={handleLogin}>
+            <form onSubmit={handleSubmit} className="space-y-5">
+                
+                {/* CAMPO NOMBRE (Solo visible en Registro) */}
+                {!isLogin && (
+                    <div className="space-y-2">
+                        <Label htmlFor="nombre">Nombre Completo</Label>
+                        <Input 
+                            id="nombre" 
+                            placeholder="Ej: Dr. García" 
+                            value={nombreCompleto} 
+                            onChange={(e) => setNombreCompleto(e.target.value)} 
+                            disabled={loading} 
+                            required={!isLogin} 
+                        />
+                    </div>
+                )}
+
                 <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="gestor@ses.es"
-                        required
-                        className="py-6" // Hacemos el input un poco más alto para mejor UX
+                    <Label htmlFor="email">Correo Electrónico Corporativo</Label>
+                    <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="usuario@salud-juntaex.es" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        disabled={loading} 
+                        required 
                     />
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="password">Contraseña</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        className="py-6"
+                    <Input 
+                        id="password" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        disabled={loading} 
+                        required 
                     />
                 </div>
 
-                <div className="flex justify-end">
-                    <a href="#" className="text-sm text-primary hover:underline font-medium">
-                        ¿Olvidó su contraseña?
-                    </a>
-                </div>
-
-                {/* Usamos el Button de Shadcn */}
-                <Button 
-                    type="submit" 
-                    className="w-full py-6 text-md font-bold" 
-                    disabled={loading}
-                >
-                    {loading ? 'Verificando...' : 'Iniciar Sesión'}
+                <Button type="submit" className="w-full h-12 text-base font-bold mt-4" disabled={loading}>
+                    {loading ? "Procesando..." : (isLogin ? "Iniciar Sesión" : "Registrarme")}
                 </Button>
             </form>
-        </>
+
+            {/* BOTÓN PARA ALTERNAR ENTRE LOGIN Y REGISTRO */}
+            <div className="mt-6 text-center">
+                <button 
+                    type="button" 
+                    onClick={() => {
+                        setIsLogin(!isLogin);
+                        setErrorMsg("");
+                    }}
+                    className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline"
+                >
+                    {isLogin 
+                        ? "¿Eres un gestor nuevo? Regístrate aquí" 
+                        : "¿Ya tienes cuenta? Inicia sesión"}
+                </button>
+            </div>
+        </div>
     );
 };

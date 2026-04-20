@@ -19,6 +19,8 @@ export interface UserRepository{
     login(email: string, password: string): Promise<{ data: any | null; error: any }>;
     logout(): Promise<{ error: any }>;
 
+    register(email: string, contrasena: string, nombreCompleto: string): Promise<{ user: any; error: any }>;
+
     
 
 

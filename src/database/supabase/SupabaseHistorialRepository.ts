@@ -2,21 +2,29 @@ import type { EncuestaHistorial, HistorialRepository } from "../repositories/His
 import { supabase } from "./Client";
 
 export class SupabaseHistorialRepository implements HistorialRepository {
-    async getHistorial(hospitalId: number): Promise<{ data?: EncuestaHistorial[]; error?: any; }> {
+    
+    async getHistorial(hospitalesIds: number[], isAdmin: boolean = false): Promise<{ data?: EncuestaHistorial[]; error?: any; }> {
         try {
-            // Pedimos las encuestas y sus respuestas asociadas en una sola consulta
-            const { data, error } = await supabase
+            // 1. Preparamos la consulta base
+            let query = supabase
                 .from('encuestas')
                 .select(`
                     id, fecha, turno, sugerencia,
                     respuestas (valor)
                 `)
-                .eq('hospital_id', hospitalId)
-                .order('fecha', { ascending: false }); // Las más nuevas primero
+                .order('fecha', { ascending: false });
 
+            // 2. Si NO es admin, filtramos por sus hospitales
+            if (!isAdmin) {
+                if (!hospitalesIds || hospitalesIds.length === 0) return { data: [] }; // Si no tiene hospitales, devolvemos vacío
+                query = query.in('hospital_id', hospitalesIds);
+            }
+
+            // 3. Ejecutamos
+            const { data, error } = await query;
             if (error) throw error;
 
-            // Transformamos los datos para calcular la nota media de cada encuesta
+            // Transformamos los datos
             const historialFormateado: EncuestaHistorial[] = data.map((encuesta: any) => {
                 const respuestas = encuesta.respuestas || [];
                 const suma = respuestas.reduce((acc: number, curr: any) => acc + (curr.valor || 0), 0);
@@ -35,9 +43,7 @@ export class SupabaseHistorialRepository implements HistorialRepository {
                 };
             });
 
-
             return { data: historialFormateado };
-
 
         } catch (error) {
             console.error("Error obteniendo historial:", error);

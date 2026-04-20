@@ -1,17 +1,22 @@
+import type { Turno } from "../../interfaces/Turnos";
 import type { TurnoRepository } from "../repositories/TurnoRepository";
 import { supabase } from "./Client";
 
 export class SupabaseTurnoRepository implements TurnoRepository {
     
-    async getTurnos(hospitalesIds: number[]) {
-        if (!hospitalesIds || hospitalesIds.length === 0) return { data: [], error: null };
+    async getTurnos(hospitalesIds: number[], isAdmin?: boolean): Promise<{ data: Turno[] | null; error: any }> {
         
-        const { data, error } = await supabase
+        let query = supabase
             .from('turnos')
-            .select('*')
-            // .in busca en todos los hospitales que tenga asignados el gestor
-            .in('hospital_id', hospitalesIds) 
+            .select('*, hospitales(nombre)')
             .order('id', { ascending: true });
+        
+        if (!isAdmin) {
+            if (!hospitalesIds || hospitalesIds.length === 0) return { data: [], error: null };
+            query = query.in('hospital_id', hospitalesIds);
+        }
+        
+        const { data, error } = await query;
         return { data, error };
     }
 
