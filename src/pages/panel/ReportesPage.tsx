@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import type { EncuestaHistorial } from "../../database/repositories/HistorialRepository";
-import { createHistorialRepository } from "../../database/repositories";
+import type { Hospital } from "../../interfaces/Hospital";
+import { createHistorialRepository, createHospitalRepository } from "../../database/repositories";
 import { Badge } from "../../components/ui/badge";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useAuthStore } from "../../store/authStore";
 
 export const ReportesPage = () => {
-    // 1. TODOS LOS HOOKS ARRIBA DEL TODO
     const { profile, isAdmin } = useAuthStore();
     const misHospitales = profile?.hospitales || [];
 
@@ -19,29 +19,68 @@ export const ReportesPage = () => {
     const [encuestas, setEncuestas] = useState<EncuestaHistorial[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Estado del Selector de Hospitales
+    const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
+    const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
+
     const chartPieRef = useRef<HTMLDivElement>(null);
     const chartBarRef = useRef<HTMLDivElement>(null);
 
-    const NOMBRE_HOSPITAL = isAdmin ? "Múltiples Centros (Global SES)" : "Hospital (Gestión Local)";
     const historialRepo = createHistorialRepository();
 
+    // 1. Cargar lista de hospitales
+    useEffect(() => {
+        if (isAdmin || misHospitales.length > 1) {
+            const fetchHospitals = async () => {
+                const hRepo = createHospitalRepository();
+                const { data } = await hRepo.getHospitales();
+                if (data) {
+                    if (isAdmin) setHospitalesDisponibles(data);
+                    else setHospitalesDisponibles(data.filter(h => misHospitales.includes(h.id)));
+                }
+            };
+            fetchHospitals();
+        }
+    }, [isAdmin, misHospitales]);
+
+    // 2. Cargar datos del historial
     useEffect(() => {
         async function load() {
-            // Si es un gestor sin hospitales, no hacemos la consulta
+            setLoading(true);
             if (!isAdmin && misHospitales.length === 0) {
                 setLoading(false);
                 return;
             }
 
-            // Pasamos los hospitales y el rol al repositorio
-            const { data } = await historialRepo.getHistorial(misHospitales, isAdmin);
+            let idsAConsultar: number[] = [];
+            let isGlobal = false;
+
+            if (filtroHospitalId === 0) {
+                if (isAdmin) {
+                    idsAConsultar = []; 
+                    isGlobal = true;
+                } else {
+                    idsAConsultar = misHospitales; 
+                    isGlobal = false;
+                }
+            } else {
+                idsAConsultar = [filtroHospitalId];
+                isGlobal = false;
+            }
+
+            const { data } = await historialRepo.getHistorial(idsAConsultar, isGlobal);
             if (data) setEncuestas(data);
             setLoading(false);
         }
         load();
-    }, [misHospitales, isAdmin]);
+    }, [misHospitales, isAdmin, filtroHospitalId]);
 
-    // 2. EL MURO DE SEGURIDAD (Después de los Hooks)
+    // Nombre Dinámico del Hospital
+    const hospitalSeleccionado = hospitalesDisponibles.find(h => h.id === filtroHospitalId);
+    const NOMBRE_HOSPITAL = filtroHospitalId === 0 
+        ? (isAdmin ? "Múltiples Centros (Global SES)" : "Mis Centros Asignados")
+        : (hospitalSeleccionado ? hospitalSeleccionado.nombre : "Hospital Seleccionado");
+
     if (!isAdmin && misHospitales.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -51,14 +90,11 @@ export const ReportesPage = () => {
                 <h2 className="text-3xl font-extrabold text-foreground mb-4">Cuenta Pendiente de Activación</h2>
                 <p className="text-lg text-muted-foreground max-w-md">
                     Tu cuenta ha sido creada correctamente, pero <b>aún no tienes ningún hospital asignado</b>. 
-                    <br/><br/>
-                    Por favor, contacta con el Administrador del SES para que te asigne a tu centro correspondiente.
                 </p>
             </div>
         );
     }
 
-    // 3. LÓGICA DE DATOS
     const encuestasFiltradas = encuestas.filter(e => {
         if (!e.fechaOriginal) return false;
         const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -266,7 +302,6 @@ export const ReportesPage = () => {
     return (
         <div className="space-y-6 animate-fade-in pb-10 relative">
 
-            {/* 🛑 ZONA INVISIBLE: Los gráficos se renderizan aquí fuera de la pantalla */}
             <div style={{ position: "absolute", top: "-9999px", left: "-9999px", color: "#000000", fill: "#000000" }}>
                 <div ref={chartPieRef} style={{ width: "400px", height: "250px", backgroundColor: "#ffffff", padding: "10px" }}>
                     <h4 style={{ textAlign: "center", fontFamily: "sans-serif", color: "#333", fontWeight: "bold", marginBottom: "10px" }}>Satisfacción General</h4>
@@ -287,25 +322,43 @@ export const ReportesPage = () => {
                 </div>
             </div>
 
-            {/* --- DISEÑO VISUAL --- */}
-            <div className="pl-1">
-                <h1 className="text-3xl font-extrabold tracking-tight">Reportes y Análisis</h1>
-                <p className="text-muted-foreground mt-1">Genera informes ejecutivos detallados para la directiva</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+                <div className="pl-1">
+                    <h1 className="text-3xl font-extrabold tracking-tight">Reportes y Análisis</h1>
+                    <p className="text-muted-foreground mt-1">Genera informes ejecutivos detallados para la directiva</p>
+                </div>
+                
+                {(isAdmin || misHospitales.length > 1) && (
+                    <div className="w-full md:w-80 space-y-2">
+                        <label className="text-sm font-bold flex items-center gap-2 text-primary">
+                            <Building2 size={16} /> Filtrar por Centro:
+                        </label>
+                        <select 
+                            value={filtroHospitalId}
+                            onChange={(e) => setFiltroHospitalId(Number(e.target.value))}
+                            className="w-full h-11 px-4 rounded-lg border border-input bg-card text-foreground font-medium shadow-sm focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                        >
+                            <option value={0}>
+                                {isAdmin ? "TODOS LOS CENTROS (Global)" : "MIS CENTROS ASIGNADOS"}
+                            </option>
+                            {hospitalesDisponibles.map(h => (
+                                <option key={h.id} value={h.id}>{h.nombre}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-1">
-
                 <div className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-bold mb-4">1. Selecciona el tipo de reporte</h2>
-
                     {tiposReporte.map((reporte) => {
                         const isSelected = tipoSeleccionado === reporte.id;
                         return (
                             <Card
                                 key={reporte.id}
                                 onClick={() => setTipoSeleccionado(reporte.id)}
-                                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? "ring-2 ring-primary bg-primary/5" : "border-border hover:border-primary/50"
-                                    }`}
+                                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? "ring-2 ring-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                             >
                                 <CardContent className="p-6 flex items-center gap-6">
                                     <div className={`p-4 rounded-full ${isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
@@ -334,8 +387,8 @@ export const ReportesPage = () => {
                         <CardContent className="p-6 space-y-6">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 text-sm">
-                                    <Building2 className="text-muted-foreground" size={18} />
-                                    <span className="font-medium">{NOMBRE_HOSPITAL}</span>
+                                    <Building2 className="text-muted-foreground shrink-0" size={18} />
+                                    <span className="font-medium truncate" title={NOMBRE_HOSPITAL}>{NOMBRE_HOSPITAL}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
                                     <Clock className="text-muted-foreground" size={18} />
@@ -383,7 +436,7 @@ export const ReportesPage = () => {
                                     <Button
                                         onClick={generarPDF}
                                         size="lg"
-                                        disabled={totalEncuestas === 0}
+                                        disabled={totalEncuestas === 0 || loading}
                                         className="gap-2 bg-primary hover:bg-primary/90 text-white min-w-[200px]"
                                     >
                                         <Download size={20} /> Generar Reporte PDF
@@ -393,7 +446,7 @@ export const ReportesPage = () => {
                                         variant="outline"
                                         size="lg"
                                         onClick={enviarEmail}
-                                        disabled={totalEncuestas === 0}
+                                        disabled={totalEncuestas === 0 || loading}
                                         className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors min-w-[200px]"
                                     >
                                         <Mail size={20} /> Enviar por Email

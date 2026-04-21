@@ -20,9 +20,7 @@ import { BotonFlotante } from "./components/ui/BotonFlotante";
 import { TurnosPage } from "./pages/gestor/TurnosPage";
 import { ParametrosPage } from "./pages/gestor/ParametrosPage";
 import { HospitalesPage } from "./pages/admin/HospitalesPage";
-
-// Placeholders para los CRUDs que haremos luego
-const UsuariosCRUD = () => <div className="p-8 text-2xl font-bold">CRUD de Usuarios (Zona Admin)</div>;
+import { UsuariosPage } from "./pages/admin/UsuariosPage";
 
 
 function App() {
@@ -60,7 +58,7 @@ function App() {
             {/* ZONA VIP (Protegida por AdminRoute) */}
             <Route element={<AdminRoute />}>
               <Route path="/panel/hospitales" element={<HospitalesPage />} />
-              <Route path="/panel/usuarios" element={<UsuariosCRUD />} />
+              <Route path="/panel/usuarios" element={<UsuariosPage />} />
             </Route>
 
           </Route>

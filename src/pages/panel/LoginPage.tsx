@@ -65,7 +65,7 @@ export const LoginPage = () => {
 
                 <div className="text-center mb-8">
                     <div className="bg-primary text-primary-foreground font-bold py-2 px-4 rounded-lg inline-block mb-4 shadow-sm">
-                        SES Extremadura
+                        HFQ
                     </div>
                     <h2 className="text-2xl font-extrabold">
                         {isLogin ? "Acceso Gestores" : "Registro de Gestores"}
@@ -140,7 +140,7 @@ export const LoginPage = () => {
                     </Button>
                 </form>
 
-                {/* 👇 BOTÓN PARA ALTERNAR ENTRE LOGIN Y REGISTRO */}
+                {/* BOTÓN PARA ALTERNAR ENTRE LOGIN Y REGISTRO */}
                 <div className="mt-8 border-t border-border pt-6 text-center flex flex-col gap-4">
                     <button 
                         type="button" 
@@ -151,7 +151,7 @@ export const LoginPage = () => {
                         className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline"
                     >
                         {isLogin 
-                            ? "¿Eres un Resp. de Calidad nuevo? Solicita acceso aquí" 
+                            ? "¿Eres un Responsable nuevo? Solicita acceso aquí" 
                             : "¿Ya tienes cuenta? Inicia sesión"}
                     </button>
 

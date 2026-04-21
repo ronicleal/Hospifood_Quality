@@ -43,9 +43,9 @@ export const PanelLayout = () => {
                         {/* LOGO */}
                         <div className="flex items-center gap-2">
                             <div className="bg-primary text-primary-foreground font-bold py-1 px-2 rounded-md text-sm">
-                                SES
+                                HFQ
                             </div>
-                            <span className="font-extrabold text-xl text-card-foreground tracking-tight">Hospifood</span>
+                            <span className="font-extrabold text-xl text-card-foreground tracking-tight">Hospifood Quality</span>
                         </div>
 
                         {/* NAVEGACIÓN DINÁMICA POR ROLES */}
@@ -59,10 +59,6 @@ export const PanelLayout = () => {
                                         <Globe size={18} /> Visión Global
                                     </Link>
                                     
-                                    <Link to="/panel/reportes" className={getLinkClass('/panel/reportes')}>
-                                        <BarChart3 size={18} /> Reportes Globales
-                                    </Link>
-
                                     <div className="w-px h-6 bg-border self-center mx-1 lg:mx-2" />
 
                                     <Link to="/panel/hospitales" className={getLinkClass('/panel/hospitales', true)}>
@@ -71,16 +67,6 @@ export const PanelLayout = () => {
                                     
                                     <Link to="/panel/usuarios" className={getLinkClass('/panel/usuarios', true)}>
                                         <Users size={18} /> Gestores
-                                    </Link>
-
-                                    <div className="w-px h-6 bg-border self-center mx-1 lg:mx-2" />
-
-                                    <Link to="/panel/turnos" className={getLinkClass('/panel/turnos')}>
-                                        <Clock size={18} /> Turnos (Global)
-                                    </Link>
-                                    
-                                    <Link to="/panel/parametros" className={getLinkClass('/panel/parametros')}>
-                                        <ListChecks size={18} /> Parámetros (Global)
                                     </Link>
                                 </>
                             ) : (
