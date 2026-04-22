@@ -21,6 +21,7 @@ import { TurnosPage } from "./pages/gestor/TurnosPage";
 import { ParametrosPage } from "./pages/gestor/ParametrosPage";
 import { HospitalesPage } from "./pages/admin/HospitalesPage";
 import { UsuariosPage } from "./pages/admin/UsuariosPage";
+import { PerfilPage } from "./pages/panel/PerfilPage";
 
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
             <Route path="/panel/reportes" element={<ReportesPage />} />
             <Route path="/panel/turnos" element={<TurnosPage />} />
             <Route path="/panel/parametros" element={<ParametrosPage />} />
+            <Route path="/panel/perfil" element={<PerfilPage />} />
 
             {/* ZONA VIP (Protegida por AdminRoute) */}
             <Route element={<AdminRoute />}>

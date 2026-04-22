@@ -7,17 +7,19 @@ export interface UserProfile {
     nombre_completo: string;
     rol: "gestor" | "admin";
     hospitales: number[];
+    avatar_url?: string;
 }
 
 interface AuthState {
-    session: any; 
-    profile: UserProfile | null; 
+    session: any;
+    profile: UserProfile | null;
     isAuthenticated: boolean;
     isAdmin: boolean;
 
     setSessionAndProfile: (session: any, profile: UserProfile) => void;
     clearSession: () => void;
     initialize: () => Promise<void>;
+    updateAvatar: (newUrl: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -52,14 +54,15 @@ export const useAuthStore = create<AuthState>()(
                             id, 
                             nombre_completo, 
                             rol,
+                            avatar_url,
                             perfiles_hospitales ( hospital_id )
                         `)
                         .eq('id', session.user.id)
                         .single();
-                    
+
                     if (profileData) {
                         // Mapeamos TODOS los hospitales que tenga asignados
-                        const hospitalesAsignados = profileData.perfiles_hospitales 
+                        const hospitalesAsignados = profileData.perfiles_hospitales
                             ? (profileData.perfiles_hospitales as any[]).map(ph => ph.hospital_id)
                             : [];
 
@@ -69,14 +72,21 @@ export const useAuthStore = create<AuthState>()(
                                 id: profileData.id,
                                 nombre_completo: profileData.nombre_completo,
                                 rol: profileData.rol as "gestor" | "admin",
-                                hospitales: hospitalesAsignados 
+                                hospitales: hospitalesAsignados,
+                                avatar_url: profileData.avatar_url
                             },
                             isAuthenticated: true,
                             isAdmin: profileData.rol === 'admin'
                         });
                     }
                 }
-            }
+            },
+
+            updateAvatar: (newUrl: string) => set((state) => ({
+                profile: state.profile ? { ...state.profile, avatar_url: newUrl } : null
+            })),
+
+            
         }),
         { name: 'hospifood-auth' }
     )

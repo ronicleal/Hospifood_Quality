@@ -95,20 +95,41 @@ export const PanelLayout = () => {
                                     <Link to="/panel/parametros" className={getLinkClass('/panel/parametros')}>
                                         <ListChecks size={18} /> Mis Parámetros
                                     </Link>
+
                                 </>
                             )}
                         </nav>
 
                         {/* PERFIL Y LOGOUT */}
                         <div className="flex items-center gap-4">
-                            <div className="hidden sm:flex flex-col items-end justify-center">
-                                <span className="text-sm font-bold text-foreground">
-                                    {profile?.nombre_completo || "Cargando..."}
-                                </span>
-                                <span className={`text-xs font-bold uppercase ${isAdmin ? 'text-purple-600' : 'text-primary'}`}>
-                                    {profile?.rol}
-                                </span>
-                            </div>
+                            
+                            <Link to="/panel/perfil" className="flex items-center gap-3 hover:bg-muted p-1 pr-3 rounded-full transition-colors group cursor-pointer" title="Ir a mi perfil">
+                                
+                                {/* 👇 DISTINGUIMOS ENTRE ADMIN Y GESTOR 👇 */}
+                                {isAdmin ? (
+                                    <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold border-2 border-purple-500 group-hover:scale-110 transition-transform shadow-sm">
+                                        AD
+                                    </div>
+                                ) : (
+                                    <img 
+                                        src={profile?.avatar_url || "/src/avatars/avatar1.jpg"} 
+                                        className="w-9 h-9 rounded-full border-2 border-primary group-hover:scale-110 transition-transform bg-background shadow-sm" 
+                                        alt="Mi Perfil" 
+                                    />
+                                )}
+
+                                <div className="hidden sm:flex flex-col items-start justify-center">
+                                    <span className="text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                                        {profile?.nombre_completo || "Cargando..."}
+                                    </span>
+                                    <span className={`text-[10px] font-bold uppercase ${isAdmin ? 'text-purple-600' : 'text-primary'}`}>
+                                        {profile?.rol}
+                                    </span>
+                                </div>
+                            </Link>
+
+                            <div className="w-px h-6 bg-border mx-1" />
+
                             <button
                                 onClick={handleLogout}
                                 className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"

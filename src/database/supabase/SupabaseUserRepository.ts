@@ -48,24 +48,39 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
 
-  async register(email: string, contrasena: string, nombreCompleto: string) {
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: contrasena,
-        });
-
+  async register(email: string, contrasena: string, nombreCompleto: string, avatarUrl: string) {
+        const { data, error } = await supabase.auth.signUp({ email, password: contrasena });
         if (error) return { user: null, error };
 
         if (data.user) {
             const { error: profileError } = await supabase.from('perfiles').insert([{
                 id: data.user.id,
                 nombre_completo: nombreCompleto,
-                rol: 'gestor' 
+                rol: 'gestor',
+                avatar_url: avatarUrl 
             }]);
-
             if (profileError) return { user: null, error: profileError };
         }
-
         return { user: data.user, error: null };
     }
+
+
+    async updateProfile(userId: string, { avatarUrl, password }: { avatarUrl?: string; password?: string }) {
+        // 1. Si el usuario ha escrito una nueva contraseña, la actualizamos
+        if (password) {
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) return { error };
+        }
+        // 2. Si hay un nuevo avatar, actualizamos su perfil público
+        if (avatarUrl) {
+            const { error } = await supabase.from('perfiles').update({ avatar_url: avatarUrl }).eq('id', userId);
+            if (error) return { error };
+        }
+        return { error: null };
+    }
+
+
+  
+  
+  
 }

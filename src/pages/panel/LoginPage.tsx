@@ -5,6 +5,7 @@ import { createUserRepository } from "../../database/repositories";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
+import { AvatarSelector } from "../../components/ui/AvatarSelector";
 
 export const LoginPage = () => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ export const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [nombreCompleto, setNombreCompleto] = useState(""); // Solo para registro
+    const [avatarUrl, setAvatarUrl] = useState("/src/avatars/avatar1.jpg");
     
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -45,8 +47,9 @@ export const LoginPage = () => {
                 setLoading(false);
                 return;
             }
+
             
-            const { error } = await userRepo.register(email, password, nombreCompleto);
+            const { error } = await userRepo.register(email, password, nombreCompleto, avatarUrl);
             if (error) {
                 setErrorMsg(error.message || "Error al crear la cuenta. La contraseña debe tener al menos 6 caracteres.");
                 setLoading(false);
@@ -68,7 +71,7 @@ export const LoginPage = () => {
                         HFQ
                     </div>
                     <h2 className="text-2xl font-extrabold">
-                        {isLogin ? "Acceso Gestores" : "Registro de Gestores"}
+                        {isLogin ? "Acceso Responsables de Calidad" : "Registro de Responsables de Calidad"}
                     </h2>
                     <p className="text-muted-foreground text-sm mt-1">Hospifood Quality</p>
                 </div>
@@ -81,18 +84,27 @@ export const LoginPage = () => {
                         </div>
                     )}
 
-                    {/* 👇 CAMPO NOMBRE (Solo visible en Registro) */}
+                    {/* 👇 2. SUSTITUIMOS EL BLOQUE !isLogin POR EL NUEVO CON EL AVATAR */}
                     {!isLogin && (
-                        <div className="space-y-2 text-left">
-                            <Label htmlFor="nombre">Nombre Completo</Label>
-                            <Input
-                                id="nombre"
-                                placeholder="Ej: Pepe Reyes"
-                                value={nombreCompleto}
-                                onChange={(e) => setNombreCompleto(e.target.value)}
-                                disabled={loading}
-                                required={!isLogin}
-                            />
+                        <div className="space-y-4 animate-fade-in">
+                            {/* Previsualización y Selector de Avatar */}
+                            <div className="flex flex-col items-center gap-4 bg-muted/30 p-4 rounded-xl border border-border">
+                                <img src={avatarUrl} alt="Preview" className="w-24 h-24 rounded-full border-4 border-background shadow-lg" />
+                                <AvatarSelector onSelect={setAvatarUrl} selectedUrl={avatarUrl} />
+                            </div>
+
+                            {/* Campo Nombre */}
+                            <div className="space-y-2 text-left">
+                                <Label htmlFor="nombre">Nombre Completo</Label>
+                                <Input 
+                                    id="nombre" 
+                                    placeholder="Ej: Pepe Reyes"
+                                    value={nombreCompleto} 
+                                    onChange={(e) => setNombreCompleto(e.target.value)} 
+                                    disabled={loading} 
+                                    required={!isLogin} 
+                                />
+                            </div>
                         </div>
                     )}
 
@@ -157,7 +169,7 @@ export const LoginPage = () => {
 
                     <p className="text-xs text-muted-foreground">
                         {isLogin 
-                            ? "Crea tu cuenta para darte de alta en el SES" 
+                            ? "Crea tu cuenta para darte de alta" 
                             : "Una vez registrado, el Administrador te asignará tus hospitales."}
                     </p>
                 </div>
