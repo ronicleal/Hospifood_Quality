@@ -6,9 +6,10 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
 import { Save, ShieldCheck, Mail, User } from "lucide-react";
+import { isPasswordValid } from "../../utils/regex";
+import { PasswordSegura } from "../../components/ui/PasswordSegura";
 
 export const PerfilPage = () => {
-    // 👇 Añadimos isAdmin aquí
     const { profile, session, updateAvatar, isAdmin } = useAuthStore();
     const userRepo = createUserRepository();
 
@@ -23,7 +24,6 @@ export const PerfilPage = () => {
         setLoading(true);
         setMsg({ text: "", type: "" });
 
-        // Si es Admin, solo mandamos la contraseña. Si es gestor, mandamos contraseña y avatar.
         const updateData: any = { password: newPass || undefined };
         if (!isAdmin) {
             updateData.avatarUrl = avatar;
@@ -35,13 +35,14 @@ export const PerfilPage = () => {
             setMsg({ text: "Error al actualizar. Inténtalo de nuevo.", type: "error" });
         } else {
             setMsg({ text: "Perfil actualizado correctamente.", type: "success" });
-            setNewPass(""); // Limpiamos la contraseña por seguridad
-            
-            // Solo actualizamos el avatar en la RAM si es un Gestor
+            setNewPass(""); 
             if (!isAdmin) updateAvatar(avatar); 
         }
         setLoading(false);
     };
+
+    // Variable para saber si debemos bloquear el botón de guardar
+    const isFormInvalid = newPass.length > 0 && !isPasswordValid(newPass);
 
     return (
         <div className="max-w-2xl mx-auto space-y-8 animate-fade-in pb-10">
@@ -52,15 +53,13 @@ export const PerfilPage = () => {
 
             <form onSubmit={handleUpdate} className="space-y-8 bg-card border border-border rounded-2xl p-8 shadow-sm">
                 
-                {/* 👇 SECCIÓN AVATAR: SOLO VISIBLE SI NO ES ADMIN 👇 */}
                 {!isAdmin && (
                    <div className="flex flex-col items-center gap-6 pb-8 border-b border-border">
-                        <img src={avatar} className="w-32 h-32 rounded-full border-4 border-background shadow-xl" alt="Avatar actual" />
+                        <img src={avatar} className="w-32 h-32 rounded-full border-4 border-background shadow-xl object-cover" alt="Avatar actual" />
                         <AvatarSelector onSelect={setAvatar} selectedUrl={avatar} />
                     </div>
                 )}
 
-                {/* DATOS NO EDITABLES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8 border-b border-border">
                     <div className="space-y-2">
                         <Label className="flex items-center gap-2"><User size={16} className="text-muted-foreground"/> Nombre Completo</Label>
@@ -72,7 +71,6 @@ export const PerfilPage = () => {
                     </div>
                 </div>
 
-                {/* CAMBIO DE CONTRASEÑA */}
                 <div>
                     <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-foreground">
                         <ShieldCheck className="text-primary" size={20}/> Seguridad
@@ -80,6 +78,9 @@ export const PerfilPage = () => {
                     <div className="space-y-2 max-w-sm">
                         <Label htmlFor="pass">Nueva Contraseña (opcional)</Label>
                         <Input id="pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
+                        
+                        {/* 👇 VALIDACIÓN DINÁMICA 👇 */}
+                        {newPass.length > 0 && <PasswordSegura password={newPass} />}
                     </div>
                 </div>
 
@@ -90,7 +91,8 @@ export const PerfilPage = () => {
                 )}
 
                 <div className="flex justify-end pt-4">
-                    <Button type="submit" disabled={loading} className="gap-2 px-8 h-12 text-md">
+                    {/* 👇 Bloqueamos el botón si la contraseña no cumple los requisitos 👇 */}
+                    <Button type="submit" disabled={loading || isFormInvalid} className="gap-2 px-8 h-12 text-md">
                         <Save size={18} /> {loading ? "Guardando..." : "Guardar Cambios"}
                     </Button>
                 </div>

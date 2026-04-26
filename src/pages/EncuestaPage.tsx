@@ -3,16 +3,10 @@ import { ChevronRight, Clock, ShieldCheck, Utensils, Zap } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { supabase } from '../database/supabase/Client';
-
-// Interfaces
 import type { Parametro } from "../interfaces/Parametro";
 import type { Turno } from "../interfaces/Turnos";
 import type { EstadoEncuesta } from "../interfaces/Respuestas";
-
-// Componentes
 import { BloquePregunta } from "../components/encuesta/BloquePregunta";
-
-// 👇 Actualizamos la ruta y el nombre del archivo (JPG)
 import heroImg from "../assets/portada.jpg"; 
 
 // --- FUNCIÓN PARA ICONOS DINÁMICOS ---
@@ -149,7 +143,7 @@ export const EncuestaPage = () => {
                 <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-10 items-center z-10">
                     <div className="space-y-6 text-center md:text-left">
                         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm border border-primary/20">
-                            <Utensils size={18} /> <span>Hospifood Quality SES</span>
+                            <Utensils size={18} /> <span>Hospifood Quality</span>
                         </div>
                         <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
                             Tu opinión es nuestro <span className="text-primary">ingrediente principal</span>

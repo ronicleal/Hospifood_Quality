@@ -2,27 +2,30 @@ import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 
-// 1. Importamos nuestros 3 nuevos guardias
+// Guardias
 import { ProtectedRoute } from "./router/ProtectedRoute";
 import { AdminRoute } from "./router/AdminRoute";
 import { PublicRoute } from "./router/PublicRoute";
 
-// 2. Importamos el Layout (con el nombre nuevo)
+// Layouts y Componentes
 import { PanelLayout } from "./layouts/PanelLayout";
+import { BotonFlotante } from "./components/ui/BotonFlotante";
 
-// 3. Importamos las páginas
+// Páginas
 import { EncuestaPage } from "./pages/EncuestaPage";
 import { LoginPage } from "./pages/panel/LoginPage";
 import { DashboardPage } from "./pages/panel/DashboardPage";
 import { HistorialPage } from "./pages/panel/HistorialPage";
 import { ReportesPage } from "./pages/panel/ReportesPage";
-import { BotonFlotante } from "./components/ui/BotonFlotante";
 import { TurnosPage } from "./pages/gestor/TurnosPage";
 import { ParametrosPage } from "./pages/gestor/ParametrosPage";
 import { HospitalesPage } from "./pages/admin/HospitalesPage";
 import { UsuariosPage } from "./pages/admin/UsuariosPage";
 import { PerfilPage } from "./pages/panel/PerfilPage";
 
+// Páginas de recuperación
+import { RecuperarPasswordPage } from "./pages/panel/RecuperarPasswordPage";
+import { ActualizarPasswordPage } from "./pages/panel/ActualizarPasswordPage";
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -36,20 +39,21 @@ function App() {
       <BotonFlotante />
 
       <Routes>
-        {/* RUTA PÚBLICA DEL PACIENTE */}
         <Route path="/" element={<EncuestaPage />} />
 
-        {/* RUTAS DE INVITADO (Protegidas por PublicRoute) */}
+        {/* RUTAS DE INVITADO */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
         </Route>
 
-        {/* ZONA PRIVADA (Protegida por ProtectedRoute) */}
+        {/* Esta ruta no tiene PublicRoute porque el usuario ya vuelve autenticado desde el correo */}
+        <Route path="/recuperar-password/confirmar" element={<ActualizarPasswordPage />} />
+
+        {/* ZONA PRIVADA */}
         <Route element={<ProtectedRoute />}>
           <Route element={<PanelLayout />}>
-
             <Route path="/panel" element={<Navigate to="/panel/dashboard" replace />} />
-
             <Route path="/panel/dashboard" element={<DashboardPage />} />
             <Route path="/panel/historial" element={<HistorialPage />} />
             <Route path="/panel/reportes" element={<ReportesPage />} />
@@ -57,12 +61,10 @@ function App() {
             <Route path="/panel/parametros" element={<ParametrosPage />} />
             <Route path="/panel/perfil" element={<PerfilPage />} />
 
-            {/* ZONA VIP (Protegida por AdminRoute) */}
             <Route element={<AdminRoute />}>
               <Route path="/panel/hospitales" element={<HospitalesPage />} />
               <Route path="/panel/usuarios" element={<UsuariosPage />} />
             </Route>
-
           </Route>
         </Route>
       </Routes>
