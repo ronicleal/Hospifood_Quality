@@ -6,9 +6,7 @@ import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
-
-// 👇 Importaciones de iconos y validadores 👇
-import { Mail, Check, AlertCircle } from "lucide-react"; 
+import { Mail, Check, AlertCircle, Eye, EyeOff } from "lucide-react"; 
 import { PasswordSegura } from "../../components/ui/PasswordSegura";
 import { isPasswordValid, validateName, capitalizeWords, validateEmail } from "../../utils/regex";
 
@@ -21,6 +19,9 @@ export const LoginPage = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    
+    //  Estado para mostrar/ocultar contraseña 
+    const [showPassword, setShowPassword] = useState(false);
     
     const [nombre, setNombre] = useState("");
     const [apellidos, setApellidos] = useState("");
@@ -71,8 +72,9 @@ export const LoginPage = () => {
             }
         }
     };
-
-    // 👇 AHORA BLOQUEA EL BOTÓN TAMBIÉN SI EL CORREO ESTÁ MAL 👇
+    
+    // calculamos si el botón debe estar deshabilitado para ambos casos 
+    const isLoginInvalid = isLogin && (!validateEmail(email) || password.length === 0);
     const isRegisterInvalid = !isLogin && (
         !isPasswordValid(password) || 
         !validateName(nombre) || 
@@ -95,7 +97,8 @@ export const LoginPage = () => {
                     <p className="text-muted-foreground text-sm mt-1">Hospifood Quality</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                {/* noValidate para quitar los popups feos del navegador*/}
+                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
 
                     {errorMsg && (
                         <div className="p-3 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-md text-center">
@@ -153,8 +156,8 @@ export const LoginPage = () => {
                             />
                         </div>
                         
-                        {/* 👇 VALIDACIÓN EN TIEMPO REAL DEL CORREO 👇 */}
-                        {!isLogin && email.length > 0 && (
+                        {/*LA VALIDACIÓN DE CORREO SE MUESTRA SIEMPRE*/}
+                        {email.length > 0 && (
                             <div className="mt-1 animate-fade-in">
                                 {validateEmail(email) ? (
                                     <span className="text-xs text-green-500 font-bold flex items-center gap-1">
@@ -171,15 +174,25 @@ export const LoginPage = () => {
 
                     <div className="space-y-2 text-left">
                         <Label htmlFor="password">Contraseña</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={loading}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                className="pr-10" // Espacio para el icono
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
+                                required
+                            />
+                            {/* Botón del ojo */}
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
 
                         {!isLogin && password.length > 0 && (
                             <PasswordSegura password={password} />
@@ -197,7 +210,8 @@ export const LoginPage = () => {
                     <Button
                         type="submit"
                         className="w-full py-6 text-md font-bold mt-4"
-                        disabled={loading || isRegisterInvalid}
+                        // Bloqueamos dinámicamente si estamos en login o registro
+                        disabled={loading || (isLogin ? isLoginInvalid : isRegisterInvalid)}
                     >
                         {loading ? "Procesando..." : (isLogin ? "Iniciar Sesión" : "Registrarse")}
                     </Button>
