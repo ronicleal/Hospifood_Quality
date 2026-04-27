@@ -5,6 +5,7 @@ import type { GestorData } from "../../database/repositories/GestorRepository";
 
 import { UsuariosAsignacionForm } from "../../components/usuarios/UsuariosAsignacionForm";
 import { UsuariosTabla } from "../../components/usuarios/UsuariosTabla";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 
 export const UsuariosPage = () => {
     const [gestores, setGestores] = useState<GestorData[]>([]);
@@ -15,6 +16,9 @@ export const UsuariosPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+
+    // Ojo aquí: el ID del usuario en Supabase Auth es un STRING, no un number
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
 
     const gestorRepo = createGestorRepository();
     const hospitalRepo = createHospitalRepository();
@@ -51,11 +55,15 @@ export const UsuariosPage = () => {
         setSaving(false);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("¿Estás seguro de revocar permanentemente el acceso a este gestor?")) return;
-        await gestorRepo.deleteGestor(id);
-        if (gestorEditando?.id === id) cancelarEdicion();
+    const solicitarBorrado = (id: string) => setDeleteModal({ isOpen: true, id });
+
+    const confirmarBorrado = async () => {
+        if (!deleteModal.id) return;
+        setLoading(true);
+        await gestorRepo.deleteGestor(deleteModal.id);
+        if (gestorEditando?.id === deleteModal.id) cancelarEdicion();
         await cargarDatos();
+        setDeleteModal({ isOpen: false, id: null });
     };
 
     return (
@@ -75,7 +83,17 @@ export const UsuariosPage = () => {
                 />
             )}
 
-            <UsuariosTabla gestores={gestores} gestorEditando={gestorEditando} loading={loading} onEdit={iniciarEdicion} onDelete={handleDelete} />
+            <UsuariosTabla gestores={gestores} gestorEditando={gestorEditando} loading={loading} onEdit={iniciarEdicion} onDelete={solicitarBorrado} />
+
+            <ConfirmModal 
+                isOpen={deleteModal.isOpen}
+                title="Revocar acceso"
+                message="¿Estás seguro de revocar permanentemente el acceso a este gestor? Deberá registrarse de nuevo para volver a entrar."
+                confirmText="Revocar Acceso"
+                onCancel={() => setDeleteModal({ isOpen: false, id: null })}
+                onConfirm={confirmarBorrado}
+                isDeleting={loading}
+            />
         </div>
     );
 };

@@ -3,9 +3,9 @@ import type { Parametro } from "../../interfaces/Parametro";
 import { createParametroRepository } from "../../database/repositories";
 import { useAuthStore } from "../../store/authStore";
 
-// Componentes
 import { ParametrosForm } from "../../components/parametros/ParametrosForm";
 import { ParametrosTabla } from "../../components/parametros/ParametrosTabla";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 
 export const ParametrosPage = () => {
     const { profile, isAdmin } = useAuthStore();
@@ -18,12 +18,12 @@ export const ParametrosPage = () => {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
+
     const parametroRepo = createParametroRepository();
 
     useEffect(() => {
-        if (!isAdmin && misHospitales.length > 0 && hospitalSeleccionado === 0) {
-            setHospitalSeleccionado(misHospitales[0]);
-        }
+        if (!isAdmin && misHospitales.length > 0 && hospitalSeleccionado === 0) setHospitalSeleccionado(misHospitales[0]);
     }, [misHospitales, isAdmin, hospitalSeleccionado]);
 
     const cargarParametros = async () => {
@@ -41,17 +41,10 @@ export const ParametrosPage = () => {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nuevoTitulo.trim() || !nuevaDescripcion.trim() || hospitalSeleccionado === 0) return;
-
         setLoading(true);
         const { error } = await parametroRepo.createParametro(nuevoTitulo.trim(), nuevaDescripcion.trim(), hospitalSeleccionado);
-
-        if (error) {
-            setErrorMsg("Error al crear el parámetro.");
-        } else {
-            setNuevoTitulo("");
-            setNuevaDescripcion("");
-            await cargarParametros();
-        }
+        if (error) setErrorMsg("Error al crear el parámetro.");
+        else { setNuevoTitulo(""); setNuevaDescripcion(""); await cargarParametros(); }
         setLoading(false);
     };
 
@@ -60,43 +53,42 @@ export const ParametrosPage = () => {
         await cargarParametros();
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("¿Seguro que quieres eliminar este parámetro?")) return;
-        await parametroRepo.deleteParametro(id);
+    const solicitarBorrado = (id: number) => setDeleteModal({ isOpen: true, id });
+
+    const confirmarBorrado = async () => {
+        if (!deleteModal.id) return;
+        setLoading(true);
+        await parametroRepo.deleteParametro(deleteModal.id);
         await cargarParametros();
+        setDeleteModal({ isOpen: false, id: null });
     };
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-foreground">
-                    {isAdmin ? "Visión Global de Parámetros" : "Parámetros a Evaluar"}
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                    {isAdmin 
-                        ? "Auditoría global de las preguntas y categorías evaluadas en la red hospitalaria."
-                        : "Gestiona las preguntas y categorías que responderán los pacientes en las encuestas."}
-                </p>
+                <h1 className="text-3xl font-bold text-foreground">{isAdmin ? "Visión Global de Parámetros" : "Parámetros a Evaluar"}</h1>
+                <p className="text-muted-foreground mt-1">{isAdmin ? "Auditoría global de preguntas." : "Gestiona las preguntas de las encuestas."}</p>
             </div>
 
-            {errorMsg && (
-                <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-md">
-                    {errorMsg}
-                </div>
-            )}
+            {errorMsg && <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-md">{errorMsg}</div>}
 
             {!isAdmin && (
                 <ParametrosForm 
-                    nuevoTitulo={nuevoTitulo} setNuevoTitulo={setNuevoTitulo}
-                    nuevaDescripcion={nuevaDescripcion} setNuevaDescripcion={setNuevaDescripcion}
+                    nuevoTitulo={nuevoTitulo} setNuevoTitulo={setNuevoTitulo} nuevaDescripcion={nuevaDescripcion} setNuevaDescripcion={setNuevaDescripcion}
                     hospitalSeleccionado={hospitalSeleccionado} setHospitalSeleccionado={setHospitalSeleccionado}
                     misHospitales={misHospitales} loading={loading} onSubmit={handleCreate}
                 />
             )}
 
-            <ParametrosTabla 
-                parametros={parametros} isAdmin={isAdmin} loading={loading}
-                onToggleActivo={handleToggleActivo} onDelete={handleDelete}
+            <ParametrosTabla parametros={parametros} isAdmin={isAdmin} loading={loading} onToggleActivo={handleToggleActivo} onDelete={solicitarBorrado} />
+
+            <ConfirmModal 
+                isOpen={deleteModal.isOpen}
+                title="¿Eliminar parámetro?"
+                message="Esta acción no se puede deshacer y eliminará esta pregunta de las futuras encuestas."
+                onCancel={() => setDeleteModal({ isOpen: false, id: null })}
+                onConfirm={confirmarBorrado}
+                isDeleting={loading}
             />
         </div>
     );
