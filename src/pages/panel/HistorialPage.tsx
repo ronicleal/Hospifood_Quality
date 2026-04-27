@@ -8,7 +8,6 @@ import { createHistorialRepository, createHospitalRepository } from "../../datab
 import type { EncuestaHistorial } from "../../database/repositories/HistorialRepository";
 import type { Hospital } from "../../interfaces/Hospital";
 
-// 👇 Importamos los nuevos componentes presentacionales 👇
 import { HistorialControles } from "../../components/historial/HistorialControles";
 import { HistorialTabla } from "../../components/historial/HistorialTabla";
 

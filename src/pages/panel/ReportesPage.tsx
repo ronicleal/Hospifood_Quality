@@ -1,15 +1,16 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { AlertCircle, Building2, Calendar, CalendarDays, CalendarRange, CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+import { AlertCircle, Building2, CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
+import { createHistorialRepository, createHospitalRepository } from "../../database/repositories";
 import type { EncuestaHistorial } from "../../database/repositories/HistorialRepository";
 import type { Hospital } from "../../interfaces/Hospital";
-import { createHistorialRepository, createHospitalRepository } from "../../database/repositories";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid } from "recharts";
-import { useAuthStore } from "../../store/authStore";
+
+import { generarReportePDF } from "../../utils/pdfGenerator";
+import { ReportesOpciones, TIPOS_REPORTE } from "../../components/reportes/ReportesOpciones";
+import { ReportesGraficosOcultos } from "../../components/reportes/ReportesGraficosOcultos";
 
 export const ReportesPage = () => {
     const { profile, isAdmin } = useAuthStore();
@@ -19,7 +20,6 @@ export const ReportesPage = () => {
     const [encuestas, setEncuestas] = useState<EncuestaHistorial[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Estado del Selector de Hospitales
     const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
     const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
 
@@ -28,45 +28,22 @@ export const ReportesPage = () => {
 
     const historialRepo = createHistorialRepository();
 
-    // 1. Cargar lista de hospitales
+    // 1. Cargar hospitales y datos
     useEffect(() => {
         if (isAdmin || misHospitales.length > 1) {
-            const fetchHospitals = async () => {
-                const hRepo = createHospitalRepository();
-                const { data } = await hRepo.getHospitales();
-                if (data) {
-                    if (isAdmin) setHospitalesDisponibles(data);
-                    else setHospitalesDisponibles(data.filter(h => misHospitales.includes(h.id)));
-                }
-            };
-            fetchHospitals();
+            createHospitalRepository().getHospitales().then(({ data }) => {
+                if (data) setHospitalesDisponibles(isAdmin ? data : data.filter(h => misHospitales.includes(h.id)));
+            });
         }
     }, [isAdmin, misHospitales]);
 
-    // 2. Cargar datos del historial
     useEffect(() => {
         async function load() {
             setLoading(true);
-            if (!isAdmin && misHospitales.length === 0) {
-                setLoading(false);
-                return;
-            }
+            if (!isAdmin && misHospitales.length === 0) return setLoading(false);
 
-            let idsAConsultar: number[] = [];
-            let isGlobal = false;
-
-            if (filtroHospitalId === 0) {
-                if (isAdmin) {
-                    idsAConsultar = []; 
-                    isGlobal = true;
-                } else {
-                    idsAConsultar = misHospitales; 
-                    isGlobal = false;
-                }
-            } else {
-                idsAConsultar = [filtroHospitalId];
-                isGlobal = false;
-            }
+            let idsAConsultar = filtroHospitalId === 0 ? (isAdmin ? [] : misHospitales) : [filtroHospitalId];
+            let isGlobal = filtroHospitalId === 0 && isAdmin;
 
             const { data } = await historialRepo.getHistorial(idsAConsultar, isGlobal);
             if (data) setEncuestas(data);
@@ -75,25 +52,9 @@ export const ReportesPage = () => {
         load();
     }, [misHospitales, isAdmin, filtroHospitalId]);
 
-    // Nombre Dinámico del Hospital
+    // 2. Lógica y derivados
     const hospitalSeleccionado = hospitalesDisponibles.find(h => h.id === filtroHospitalId);
-    const NOMBRE_HOSPITAL = filtroHospitalId === 0 
-        ? (isAdmin ? "Múltiples Centros (Global SES)" : "Mis Centros Asignados")
-        : (hospitalSeleccionado ? hospitalSeleccionado.nombre : "Hospital Seleccionado");
-
-    if (!isAdmin && misHospitales.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-                <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                    <AlertCircle size={40} />
-                </div>
-                <h2 className="text-3xl font-extrabold text-foreground mb-4">Cuenta Pendiente de Activación</h2>
-                <p className="text-lg text-muted-foreground max-w-md">
-                    Tu cuenta ha sido creada correctamente, pero <b>aún no tienes ningún hospital asignado</b>. 
-                </p>
-            </div>
-        );
-    }
+    const NOMBRE_HOSPITAL = filtroHospitalId === 0 ? (isAdmin ? "Múltiples Centros (Global SES)" : "Mis Centros Asignados") : (hospitalSeleccionado?.nombre || "Hospital Seleccionado");
 
     const encuestasFiltradas = encuestas.filter(e => {
         if (!e.fechaOriginal) return false;
@@ -105,9 +66,7 @@ export const ReportesPage = () => {
             const hace7 = new Date(hoy); hace7.setDate(hoy.getDate() - 7);
             return fechaEnc >= hace7 && fechaEnc <= hoy;
         }
-        if (tipoSeleccionado === "mensual") {
-            return fechaEnc.getMonth() === hoy.getMonth() && fechaEnc.getFullYear() === hoy.getFullYear();
-        }
+        if (tipoSeleccionado === "mensual") return fechaEnc.getMonth() === hoy.getMonth() && fechaEnc.getFullYear() === hoy.getFullYear();
         return false;
     });
 
@@ -120,270 +79,84 @@ export const ReportesPage = () => {
 
     const dataTurnos = ["Desayuno", "Comida", "Cena"].map(t => {
         const encuestasTurno = encuestasFiltradas.filter(e => e.turno === t);
-        const media = encuestasTurno.length > 0
-            ? encuestasTurno.reduce((acc, curr) => acc + curr.notaMedia, 0) / encuestasTurno.length : 0;
+        const media = encuestasTurno.length > 0 ? encuestasTurno.reduce((acc, curr) => acc + curr.notaMedia, 0) / encuestasTurno.length : 0;
         return { name: t, nota: parseFloat(media.toFixed(1)) };
     });
 
-    const getEncuestasDelPeriodo = () => encuestasFiltradas.length;
+    const totalEncuestas = encuestasFiltradas.length;
+    const reporteData = TIPOS_REPORTE.find(r => r.id === tipoSeleccionado);
 
-    const tiposReporte = [
-        { id: "diario", titulo: "Reporte Diario", desc: "Resumen de las encuestas del día actual.", icono: Calendar },
-        { id: "semanal", titulo: "Reporte Semanal", desc: "Análisis de tendencias de los últimos 7 días.", icono: CalendarDays },
-        { id: "mensual", titulo: "Reporte Mensual", desc: "Informe completo y evolutivo del mes.", icono: CalendarRange },
-    ] as const;
-
-    const contenidoIncluido = [
-        "Estadísticas generales de satisfacción",
-        "Gráficos de evolución temporal",
-        "Análisis por tipo de comida",
-        "Comentarios destacados de pacientes",
-        "Recomendaciones de mejora"
-    ];
-
-    const chartToImage = async (ref: React.RefObject<HTMLDivElement | null>): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            if (!ref.current) return reject("No ref");
-            const svg = ref.current.querySelector("svg");
-            if (!svg) return reject("No SVG");
-
-            const clone = svg.cloneNode(true) as SVGSVGElement;
-            clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-            const xml = new XMLSerializer().serializeToString(clone);
-            const svg64 = btoa(unescape(encodeURIComponent(xml)));
-            const image64 = "data:image/svg+xml;base64," + svg64;
-
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement("canvas");
-                canvas.width = 600; 
-                canvas.height = 300; 
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL("image/png"));
-                } else {
-                    reject("Error de Canvas");
-                }
-            };
-            img.onerror = () => reject("Error loading SVG");
-            img.src = image64;
+    // 3. Acciones de Exportación
+    const handleGenerarPDF = () => {
+        generarReportePDF({
+            tituloReporte: reporteData?.titulo || "Reporte", nombreHospital: NOMBRE_HOSPITAL,
+            totalEncuestas, encuestasFiltradas, dataTurnos, chartPieRef, chartBarRef
         });
-    };
-
-    const generarPDF = async () => {
-        const total = getEncuestasDelPeriodo();
-        if (total === 0) {
-            alert("No hay encuestas en este período para generar el reporte.");
-            return;
-        }
-
-        const doc = new jsPDF();
-        const reporteData = tiposReporte.find(r => r.id === tipoSeleccionado);
-
-        doc.setFillColor(37, 99, 235); 
-        doc.rect(0, 0, 210, 45, 'F');
-
-        doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`SES - HOSPIFOOD QUALITY`, 20, 20);
-
-        doc.setFontSize(14);
-        doc.text(`INFORME DE CALIDAD Y SATISFACCIÓN DEL PACIENTE`, 20, 30);
-        doc.setFontSize(11);
-        doc.text(`Servicio de Alimentación del Hospital`, 20, 38);
-
-        doc.setTextColor(50, 50, 50);
-        doc.setFontSize(12);
-        doc.text(`Detalles del Documento:`, 20, 60);
-
-        doc.setFontSize(10);
-        doc.setTextColor(80, 80, 80);
-        doc.text(`Centro Hospitalario: ${NOMBRE_HOSPITAL}`, 25, 68);
-        doc.text(`Tipo de Informe: ${reporteData?.titulo.toUpperCase()}`, 25, 74);
-        doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 25, 80);
-        doc.text(`Volumen de Muestra: ${total} encuestas procesadas`, 25, 86);
-
-        doc.setDrawColor(200, 200, 200);
-        doc.line(20, 92, 190, 92); 
-
-        const mediaGlobal = (encuestasFiltradas.reduce((acc, curr) => acc + curr.notaMedia, 0) / total).toFixed(1);
-        const turnosValidos = dataTurnos.filter(t => t.nota > 0);
-
-        const mejorTurno = turnosValidos.length > 0
-            ? turnosValidos.reduce((prev, current) => (prev.nota > current.nota) ? prev : current)
-            : { name: 'N/A', nota: 0 };
-
-        const peorTurno = turnosValidos.length > 0
-            ? turnosValidos.reduce((prev, current) => (prev.nota < current.nota) ? prev : current)
-            : { name: 'N/A', nota: 0 };
-
-        const textoAnalisis = `Durante el periodo evaluado, el índice de satisfacción general de los pacientes respecto al servicio de comidas se sitúa en un ${mediaGlobal} sobre 5.0. \n\nAnalizando el desglose por turnos, se observa que el servicio de ${mejorTurno.name} presenta el mayor índice de aceptación (${mejorTurno.nota}/5.0). Por el contrario, los resultados indican que el turno de ${peorTurno.name} (${peorTurno.nota}/5.0) requiere una supervisión prioritaria para identificar posibles deficiencias en temperatura, presentación o calidad del emplatado.`;
-
-        doc.setFontSize(13);
-        doc.setTextColor(37, 99, 235);
-        doc.text("1. Resumen Ejecutivo", 20, 105);
-
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        const lineasTexto = doc.splitTextToSize(textoAnalisis, 170);
-        doc.text(lineasTexto, 20, 113);
-
-        doc.setFontSize(13);
-        doc.setTextColor(37, 99, 235);
-        doc.text("2. Representación Visual de Datos", 20, 155);
-
-        try {
-            const imgPie = await chartToImage(chartPieRef);
-            const imgBar = await chartToImage(chartBarRef);
-            doc.addImage(imgPie, 'PNG', 15, 165, 85, 42);
-            doc.addImage(imgBar, 'PNG', 105, 165, 85, 42);
-            
-            doc.setFontSize(8);
-            doc.setTextColor(120, 120, 120);
-            doc.text("Fig 1. Distribución porcentual de las valoraciones.", 20, 215);
-            doc.text("Fig 2. Media de puntuación segmentada por servicio.", 110, 215);
-        } catch (error) {
-            console.error("Error al capturar los gráficos:", error);
-        }
-
-        doc.addPage();
-        doc.setFontSize(13);
-        doc.setTextColor(37, 99, 235);
-        doc.text("3. Registro Detallado de Feedback", 20, 20);
-
-        doc.setFontSize(9);
-        doc.setTextColor(80, 80, 80);
-        doc.text("A continuación se detallan las respuestas individuales y comentarios proporcionados por los pacientes:", 20, 26);
-
-        autoTable(doc, {
-            startY: 32,
-            head: [['Fecha', 'Turno', 'Nota Media', 'Comentarios del Paciente']],
-            body: encuestasFiltradas.map(e => [e.fecha, e.turno, `${e.notaMedia} / 5`, e.sugerencia || "Sin comentarios."]),
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [245, 247, 250] },
-            margin: { top: 30 }
-        });
-
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text(`Documento generado por Hospifood Quality - Página ${i} de ${pageCount}`, 20, 290);
-        }
-
-        doc.save(`Hospifood_${reporteData?.titulo.replace(" ", "_")}.pdf`);
     };
 
     const enviarEmail = () => {
-        const reporteData = tiposReporte.find(r => r.id === tipoSeleccionado);
-        const total = getEncuestasDelPeriodo();
-
         const subject = encodeURIComponent(`Informe de Calidad: ${reporteData?.titulo} - Hospifood`);
         const body = encodeURIComponent(
             `Estimada Directiva,\n\nAdjunto remitimos el ${reporteData?.titulo} correspondiente al ${NOMBRE_HOSPITAL}.\n\n` +
-            `Resumen de Datos:\n` +
-            `• Muestra analizada: ${total} encuestas de pacientes.\n\n` +
-            `Por favor, revisen el PDF adjunto para consultar el desglose gráfico, la detección de áreas de mejora por turnos y el listado de comentarios directos de los pacientes.\n\n` +
-            `Atentamente,\nDepartamento de Calidad - Hospifood SES.`
+            `Resumen de Datos:\n• Muestra analizada: ${totalEncuestas} encuestas de pacientes.\n\n` +
+            `Por favor, revisen el PDF adjunto para consultar el desglose gráfico.\n\nAtentamente,\nDepartamento de Calidad - Hospifood SES.`
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };
 
-    const totalEncuestas = getEncuestasDelPeriodo();
+    // 4. Vistas Especiales
+    if (!isAdmin && misHospitales.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6 shadow-sm"><AlertCircle size={40} /></div>
+                <h2 className="text-3xl font-extrabold mb-4">Cuenta Pendiente de Activación</h2>
+                <p className="text-lg text-muted-foreground max-w-md">Tu cuenta ha sido creada correctamente, pero <b>aún no tienes ningún hospital asignado</b>.</p>
+            </div>
+        );
+    }
 
     if (loading) return <div className="p-10 text-center font-bold text-muted-foreground">Cargando reportes...</div>;
 
+    // 5. Renderizado Principal
     return (
         <div className="space-y-6 animate-fade-in pb-10 relative">
+            
+            {/* Gráficos Ocultos para el PDF */}
+            <ReportesGraficosOcultos chartPieRef={chartPieRef} chartBarRef={chartBarRef} dataSatisfaccion={dataSatisfaccion} dataTurnos={dataTurnos} />
 
-            <div style={{ position: "absolute", top: "-9999px", left: "-9999px", color: "#000000", fill: "#000000" }}>
-                <div ref={chartPieRef} style={{ width: "400px", height: "250px", backgroundColor: "#ffffff", padding: "10px" }}>
-                    <h4 style={{ textAlign: "center", fontFamily: "sans-serif", color: "#333", fontWeight: "bold", marginBottom: "10px" }}>Satisfacción General</h4>
-                    <PieChart width={400} height={200}>
-                        <Pie data={dataSatisfaccion} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={80}>
-                            {dataSatisfaccion.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                        </Pie>
-                    </PieChart>
-                </div>
-                <div ref={chartBarRef} style={{ width: "400px", height: "250px", backgroundColor: "#ffffff", padding: "10px" }}>
-                    <h4 style={{ textAlign: "center", fontFamily: "sans-serif", color: "#333", fontWeight: "bold", marginBottom: "10px" }}>Nota Media por Turnos</h4>
-                    <BarChart width={400} height={200} data={dataTurnos}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" vertical={false} />
-                        <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} domain={[0, 5]} />
-                        <Bar dataKey="nota" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </div>
-            </div>
-
+            {/* Cabecera y Filtros */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
                 <div className="pl-1">
                     <h1 className="text-3xl font-extrabold tracking-tight">Reportes y Análisis</h1>
                     <p className="text-muted-foreground mt-1">Genera informes ejecutivos detallados para la directiva</p>
                 </div>
-                
                 {(isAdmin || misHospitales.length > 1) && (
                     <div className="w-full md:w-80 space-y-2">
                         <label className="text-sm font-bold flex items-center gap-2 text-primary">
                             <Building2 size={16} /> Filtrar por Centro:
                         </label>
                         <select 
-                            value={filtroHospitalId}
-                            onChange={(e) => setFiltroHospitalId(Number(e.target.value))}
+                            value={filtroHospitalId} onChange={(e) => setFiltroHospitalId(Number(e.target.value))}
                             className="w-full h-11 px-4 rounded-lg border border-input bg-card text-foreground font-medium shadow-sm focus:ring-2 focus:ring-primary outline-none transition-shadow"
                         >
-                            <option value={0}>
-                                {isAdmin ? "TODOS LOS CENTROS (Global)" : "MIS CENTROS ASIGNADOS"}
-                            </option>
-                            {hospitalesDisponibles.map(h => (
-                                <option key={h.id} value={h.id}>{h.nombre}</option>
-                            ))}
+                            <option value={0}>{isAdmin ? "TODOS LOS CENTROS (Global)" : "MIS CENTROS ASIGNADOS"}</option>
+                            {hospitalesDisponibles.map(h => <option key={h.id} value={h.id}>{h.nombre}</option>)}
                         </select>
                     </div>
                 )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-1">
-                <div className="lg:col-span-2 space-y-4">
-                    <h2 className="text-xl font-bold mb-4">1. Selecciona el tipo de reporte</h2>
-                    {tiposReporte.map((reporte) => {
-                        const isSelected = tipoSeleccionado === reporte.id;
-                        return (
-                            <Card
-                                key={reporte.id}
-                                onClick={() => setTipoSeleccionado(reporte.id)}
-                                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? "ring-2 ring-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
-                            >
-                                <CardContent className="p-6 flex items-center gap-6">
-                                    <div className={`p-4 rounded-full ${isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                                        <reporte.icono size={28} />
-                                    </div>
-                                    <div>
-                                        <h3 className={`text-lg font-bold ${isSelected ? "text-primary" : "text-foreground"}`}>
-                                            {reporte.titulo}
-                                        </h3>
-                                        <p className="text-muted-foreground mt-1">{reporte.desc}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
-                </div>
+                {/* Componente Opciones */}
+                <ReportesOpciones tipoSeleccionado={tipoSeleccionado} setTipoSeleccionado={setTipoSeleccionado} />
 
+                {/* Detalles Laterales */}
                 <div className="lg:col-span-1 space-y-4">
                     <h2 className="text-xl font-bold mb-4">2. Detalles de los datos</h2>
-
                     <Card className="border-border shadow-sm h-[calc(100%-2.5rem)]">
                         <CardHeader className="bg-muted/30 border-b border-border pb-4">
-                            <CardTitle className="text-primary">{tiposReporte.find(r => r.id === tipoSeleccionado)?.titulo}</CardTitle>
+                            <CardTitle className="text-primary">{reporteData?.titulo}</CardTitle>
                         </CardHeader>
-
                         <CardContent className="p-6 space-y-6">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 text-sm">
@@ -398,21 +171,16 @@ export const ReportesPage = () => {
                                 <div className="flex items-center gap-3 text-sm">
                                     <FileText className="text-muted-foreground" size={18} />
                                     <span className="font-medium text-muted-foreground">Volumen de datos:</span>
-                                    <Badge variant={totalEncuestas > 0 ? "default" : "destructive"}>
-                                        {totalEncuestas} encuestas
-                                    </Badge>
+                                    <Badge variant={totalEncuestas > 0 ? "default" : "destructive"}>{totalEncuestas} encuestas</Badge>
                                 </div>
                             </div>
-
                             <div className="h-px w-full bg-border" />
-
                             <div>
                                 <p className="text-sm font-bold mb-3 text-foreground">El PDF incluirá:</p>
                                 <ul className="space-y-3">
-                                    {contenidoIncluido.map((item, i) => (
-                                        <li key={i} className="flex items-start gap-3 text-xs font-medium text-muted-foreground">
-                                            <CheckCircle2 size={16} className="text-green-500 shrink-0 mt-0.5" />
-                                            {item}
+                                    {["Estadísticas de satisfacción", "Gráficos de evolución", "Comentarios de pacientes"].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                                            <CheckCircle2 size={16} className="text-green-500 shrink-0" /> {item}
                                         </li>
                                     ))}
                                 </ul>
@@ -421,34 +189,20 @@ export const ReportesPage = () => {
                     </Card>
                 </div>
 
+                {/* Botones de Exportación */}
                 <div className="lg:col-span-3 mt-4">
                     <Card className="bg-primary/5 border-dashed border-2 border-primary/20">
                         <CardContent className="p-8">
                             <div className="max-w-2xl mx-auto text-center space-y-6">
                                 <div>
                                     <h3 className="text-xl font-bold">3. Exportar y Compartir</h3>
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                        Genera el documento para guardarlo o envíalo directamente por correo electrónico.
-                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-1">Genera el documento para guardarlo o envíalo por correo electrónico.</p>
                                 </div>
-
                                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                    <Button
-                                        onClick={generarPDF}
-                                        size="lg"
-                                        disabled={totalEncuestas === 0 || loading}
-                                        className="gap-2 bg-primary hover:bg-primary/90 text-white min-w-[200px]"
-                                    >
+                                    <Button onClick={handleGenerarPDF} size="lg" disabled={totalEncuestas === 0 || loading} className="gap-2 bg-primary hover:bg-primary/90 text-white min-w-[200px]">
                                         <Download size={20} /> Generar Reporte PDF
                                     </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        onClick={enviarEmail}
-                                        disabled={totalEncuestas === 0 || loading}
-                                        className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors min-w-[200px]"
-                                    >
+                                    <Button variant="outline" size="lg" onClick={enviarEmail} disabled={totalEncuestas === 0 || loading} className="gap-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors min-w-[200px]">
                                         <Mail size={20} /> Enviar por Email
                                     </Button>
                                 </div>
@@ -458,5 +212,5 @@ export const ReportesPage = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
