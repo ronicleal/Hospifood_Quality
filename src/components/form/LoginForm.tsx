@@ -73,7 +73,7 @@ export const LoginForm = () => {
                 setModal({ 
                     isOpen: true, 
                     title: "¡Cuenta creada con éxito!", 
-                    message: "Te has registrado correctamente como Gestor de Calidad. Accede al panel para comprobar tus centros asignados.", 
+                    message: "Te has registrado correctamente como Responsable de Calidad. Accede al panel para comprobar tus centros asignados.", 
                     type: "success", 
                     action: "register" 
                 });
@@ -120,11 +120,11 @@ export const LoginForm = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2 text-left">
                                 <Label htmlFor="nombre">Nombre</Label>
-                                <Input id="nombre" placeholder="Ej: Juan Luis" value={nombre} onChange={(e) => setNombre(capitalizeWords(e.target.value))} disabled={loading} required={!isLogin} />
+                                <Input id="nombre" placeholder="Ej: Juan Manuel" value={nombre} onChange={(e) => setNombre(capitalizeWords(e.target.value))} disabled={loading} required={!isLogin} />
                             </div>
                             <div className="space-y-2 text-left">
                                 <Label htmlFor="apellidos">Apellidos</Label>
-                                <Input id="apellidos" placeholder="Ej: Ortiz Martin" value={apellidos} onChange={(e) => setApellidos(capitalizeWords(e.target.value))} disabled={loading} required={!isLogin} />
+                                <Input id="apellidos" placeholder="Ej: Jiménez López " value={apellidos} onChange={(e) => setApellidos(capitalizeWords(e.target.value))} disabled={loading} required={!isLogin} />
                             </div>
                         </div>
                     </div>
@@ -150,7 +150,7 @@ export const LoginForm = () => {
                 <div className="space-y-2 text-left">
                     <Label htmlFor="password">Contraseña</Label>
                     <div className="relative">
-                        <Input id="password" type={showPassword ? "text" : "password"} className="pr-10" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} required />
+                        <Input id="password" type={showPassword ? "text" : "password"} className="pr-10" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} required />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>

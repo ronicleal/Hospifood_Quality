@@ -44,8 +44,12 @@ export class SupabaseGestorRepository implements GestorRepository {
     }
 
     async deleteGestor(id: string) {
-        // Al borrar el perfil, Supabase borra sus relaciones automáticamente gracias al CASCADE
-        const { error } = await supabase.from('perfiles').delete().eq('id', id);
+        // 1. Primero borramos el perfil por si acaso no hay borrado en cascada
+        await supabase.from('perfiles').delete().eq('id', id);
+
+        // 2. Luego llamamos a nuestra función SQL segura para borrar la autenticación
+        const { error } = await supabase.rpc('borrar_usuario_completo', { usuario_id: id });
+      
         return { error };
     }
 }
