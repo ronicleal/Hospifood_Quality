@@ -3,10 +3,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import type { Turno } from "../../interfaces/Turnos";
 
-// Asegúrate de que el nombre coincida con tu imagen
-import heroImg from "../../assets/portada.jpg"; 
-
-// Este componente solo recibe datos y pinta la pantalla bonita. No sabe qué es Supabase.
+import heroImg from "../../assets/portada.jpg";
 
 interface Props {
     turnosDisponibles: Turno[];
@@ -26,6 +23,21 @@ const getIconoTurno = (nombre: string) => {
     if (n.includes('recena')) return '🥛';
     return '🍽️';
 };
+
+// LISTA DE PLANTAS ORDENADA ALFABÉTICAMENTE 
+const PLANTAS_HOSPITALARIAS = [
+    "Cardiologia",
+    "Gastroenterologia",
+    "Medicina interna",
+    "Neumologia",
+    "Oncologia",
+    "Otorrinolaringologia",
+    "Pediatria",
+    "Salud mental",
+    "Tocologia-Obstetricia",
+    "Traumatologia",
+    "Uro-ginecologia"
+].sort(); // Usamos sort() para garantizar el orden alfabético
 
 export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turnoSeleccionado, onChangePlanta, onChangeTurno, onComenzar }: Props) => {
     return (
@@ -70,6 +82,7 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
 
                     <Card className="w-full max-w-sm shadow-xl border-0 ring-1 ring-slate-100/50 bg-white/90 backdrop-blur-sm">
                         <CardContent className="p-6 space-y-5">
+                            {/* 👇 SELECT DE PLANTAS MEJORADO 👇 */}
                             <div className="space-y-2 text-left">
                                 <label className="text-sm font-bold text-slate-700">¿En qué planta o unidad estás?</label>
                                 <select 
@@ -77,13 +90,12 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
                                     value={plantaSeleccionada}
                                     onChange={e => onChangePlanta(e.target.value)}
                                 >
-                                    <option value="">Seleccionar unidad...</option>
-                                    <option value="Planta 1">Planta 1</option>
-                                    <option value="Planta 2">Planta 2</option>
-                                    <option value="Planta 3">Planta 3</option>
-                                    <option value="Maternidad">Maternidad</option>
-                                    <option value="Urgencias">Urgencias</option>
-                                    <option value="UCI">UCI</option>
+                                    <option value="" disabled>Seleccionar unidad...</option>
+                                    {PLANTAS_HOSPITALARIAS.map((planta) => (
+                                        <option key={planta} value={planta}>
+                                            {planta}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="space-y-2 text-left">
@@ -93,7 +105,7 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
                                     value={turnoSeleccionado}
                                     onChange={e => onChangeTurno(e.target.value)}
                                 >
-                                    <option value="">Seleccionar turno...</option>
+                                    <option value="" disabled>Seleccionar turno...</option>
                                     {turnosDisponibles.map((t) => (
                                         <option key={t.id} value={t.nombre}>
                                             {getIconoTurno(t.nombre)} {t.nombre}
