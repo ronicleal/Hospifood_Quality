@@ -11,8 +11,14 @@ export const BotonFlotante = () => {
     return (
         <Button
             onClick={() => navigate(esZonaResponsable ? '/' : '/login')}
-            // 👇 CAMBIAMOS top-4 por top-20 PARA QUE NO PISE LA CABECERA 👇
-            className={`fixed right-4 top-15 md:top-auto md:bottom-6 z-[100] bg-[#A855F7] hover:bg-[#9333EA] text-white font-bold h-auto py-2 px-3 md:py-3 md:px-6 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group`}
+            className={`
+                fixed z-[100] transition-all flex items-center gap-2 group rounded-full font-bold text-white bg-[#A855F7]
+                opacity-60 hover:opacity-100 hover:shadow-xl
+                /* MÓVIL*/
+                top-15 right-4 h-auto py-2 px-3 shadow-lg
+                /* WEB/TABLET */
+                md:top-auto md:bottom-8 md:right-8 md:py-3 md:px-6
+            `}
         >
             {/* Texto solo visible en PC/Tablet */}
             <span className="hidden sm:inline-block text-sm md:text-base">
