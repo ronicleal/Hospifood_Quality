@@ -9,7 +9,7 @@ export class SupabaseHistorialRepository implements HistorialRepository {
             let query = supabase
                 .from('encuestas')
                 .select(`
-                    id, fecha, turno, sugerencia,
+                    id, fecha, turno, sugerencia, planta,
                     respuestas (valor)
                 `)
                 .order('fecha', { ascending: false });
@@ -39,6 +39,7 @@ export class SupabaseHistorialRepository implements HistorialRepository {
                     hora: dateObj ? dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-',
                     turno: encuesta.turno || 'N/A',
                     sugerencia: encuesta.sugerencia || '-',
+                    planta: encuesta.planta || '-', // 👈 ¡Aquí mapeamos el nuevo campo!
                     notaMedia: parseFloat(media.toFixed(1))
                 };
             });

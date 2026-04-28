@@ -6,9 +6,9 @@ export interface EncuestaHistorial {
     turno: string;
     sugerencia: string;
     notaMedia: number;
+    planta?: string; 
 }
 
 export interface HistorialRepository {
     getHistorial(hospitalesIds: number[], isAdmin?: boolean): Promise<{ data?: EncuestaHistorial[]; error?: any; }>;
 }
-

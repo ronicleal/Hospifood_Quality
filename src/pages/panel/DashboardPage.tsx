@@ -3,7 +3,13 @@ import { AlertCircle } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 
 // Repositorios e Interfaces
-import { createStatsRepository, createHospitalRepository, createTurnoRepository, createParametroRepository, createGestorRepository } from "../../database/repositories";
+import { 
+    createStatsRepository, 
+    createHospitalRepository, 
+    createTurnoRepository, 
+    createParametroRepository, 
+    createGestorRepository 
+} from "../../database/repositories";
 import type { DashboardData } from "../../interfaces/Estadisticas";
 import type { Hospital } from "../../interfaces/Hospital";
 import type { Turno } from "../../interfaces/Turnos";
@@ -25,6 +31,9 @@ export const DashboardPage = () => {
     
     const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
     const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
+    
+    // 👇 Nuevo estado para el filtro de planta
+    const [filtroPlanta, setFiltroPlanta] = useState<string>("Todas");
     
     const [detallesGestores, setDetallesGestores] = useState<GestorData[]>([]);
     const [detallesTurnos, setDetallesTurnos] = useState<Turno[]>([]);
@@ -50,8 +59,10 @@ export const DashboardPage = () => {
             let idsAConsultar = filtroHospitalId === 0 ? (isAdmin ? [] : misHospitales) : [filtroHospitalId];
             let isGlobal = filtroHospitalId === 0 && isAdmin;
 
-            // Pedimos los datos estadísticos
-            const { data: stast } = await statsRepo.getDashboardStats(idsAConsultar, isGlobal);
+            // 👇 Pasamos el nuevo parámetro de planta al repositorio
+            const plantaParam = filtroPlanta === "Todas" ? null : filtroPlanta;
+            const { data: stast } = await statsRepo.getDashboardStats(idsAConsultar, isGlobal, plantaParam);
+            
             if (stast) setData(stast);
 
             // Detalles de configuración (solo si se selecciona 1 hospital específico)
@@ -69,7 +80,7 @@ export const DashboardPage = () => {
             setLoading(false);
         }
         loadData();
-    }, [misHospitales, isAdmin, filtroHospitalId]);
+    }, [misHospitales, isAdmin, filtroHospitalId, filtroPlanta]); // 👈 Añadimos filtroPlanta a las dependencias para que recargue al cambiar
 
     // Muro de seguridad visual
     if (!isAdmin && misHospitales.length === 0) {
@@ -94,6 +105,8 @@ export const DashboardPage = () => {
                 filtroHospitalId={filtroHospitalId} 
                 setFiltroHospitalId={setFiltroHospitalId} 
                 hospitalesDisponibles={hospitalesDisponibles} 
+                filtroPlanta={filtroPlanta}          // 👈 Pasamos el estado de la planta
+                setFiltroPlanta={setFiltroPlanta}    // 👈 Pasamos la función para cambiar la planta
             />
 
             {/* Tarjetas KPI Superiores */}

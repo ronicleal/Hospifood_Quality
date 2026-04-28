@@ -1,13 +1,9 @@
 import { Badge } from "../ui/badge";
 import type { EncuestaHistorial } from "../../database/repositories/HistorialRepository";
 
-interface Props {
-    encuestas: EncuestaHistorial[];
-}
+interface Props { encuestas: EncuestaHistorial[]; }
 
 export const HistorialTabla = ({ encuestas }: Props) => {
-    
-    // Esta función es puramente visual, por lo que pertenece a este componente
     const getBadgeVariant = (nota: number) => {
         if (nota >= 4.5) return "default"; 
         if (nota >= 3.0) return "secondary"; 
@@ -21,7 +17,7 @@ export const HistorialTabla = ({ encuestas }: Props) => {
                     <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
                         <tr>
                             <th className="px-6 py-4">Fecha</th>
-                            <th className="px-6 py-4">Hora</th>
+                            <th className="px-6 py-4">Planta</th> {/* 👈 Nueva Columna */}
                             <th className="px-6 py-4">Turno</th>
                             <th className="px-6 py-4">Nota media</th>
                             <th className="px-6 py-4 w-1/3">Sugerencias</th>
@@ -31,24 +27,20 @@ export const HistorialTabla = ({ encuestas }: Props) => {
                         {encuestas.length > 0 ? (
                             encuestas.map((encuesta) => (
                                 <tr key={encuesta.id} className="hover:bg-muted/30 transition-colors">
-                                    <td className="px-6 py-4 font-medium">{encuesta.fecha}</td>
-                                    <td className="px-6 py-4 text-muted-foreground">{encuesta.hora}</td>
+                                    <td className="px-6 py-4 font-medium">
+                                        {encuesta.fecha} <span className="text-xs text-muted-foreground block">{encuesta.hora}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-foreground font-medium">{encuesta.planta || '-'}</td> {/* 👈 Dato de Planta */}
                                     <td className="px-6 py-4 font-medium">{encuesta.turno}</td>
                                     <td className="px-6 py-4">
-                                        <Badge variant={getBadgeVariant(encuesta.notaMedia)}>
-                                            {encuesta.notaMedia.toFixed(1)}
-                                        </Badge>
+                                        <Badge variant={getBadgeVariant(encuesta.notaMedia)}>{encuesta.notaMedia.toFixed(1)}</Badge>
                                     </td>
-                                    <td className="px-6 py-4 text-muted-foreground italic">
-                                        {encuesta.sugerencia || "Sin comentarios."}
-                                    </td>
+                                    <td className="px-6 py-4 text-muted-foreground italic">{encuesta.sugerencia || "Sin comentarios."}</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
-                                    No se encontraron encuestas con los filtros actuales.
-                                </td>
+                                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">No se encontraron encuestas con los filtros actuales.</td>
                             </tr>
                         )}
                     </tbody>

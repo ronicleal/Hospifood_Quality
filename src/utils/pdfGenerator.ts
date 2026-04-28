@@ -38,6 +38,7 @@ export const chartToImage = async (ref: React.RefObject<HTMLDivElement | null>):
 interface GenerarPDFProps {
     tituloReporte: string;
     nombreHospital: string;
+    nombrePlanta: string; // 👈 Añadido
     totalEncuestas: number;
     encuestasFiltradas: EncuestaHistorial[];
     dataTurnos: { name: string; nota: number }[];
@@ -46,7 +47,7 @@ interface GenerarPDFProps {
 }
 
 export const generarReportePDF = async ({
-    tituloReporte, nombreHospital, totalEncuestas, encuestasFiltradas, dataTurnos, chartPieRef, chartBarRef
+    tituloReporte, nombreHospital, nombrePlanta, totalEncuestas, encuestasFiltradas, dataTurnos, chartPieRef, chartBarRef
 }: GenerarPDFProps) => {
     
     if (totalEncuestas === 0) {
@@ -58,11 +59,9 @@ export const generarReportePDF = async ({
 
     doc.setFillColor(37, 99, 235); 
     doc.rect(0, 0, 210, 45, 'F');
-
     doc.setFontSize(24);
     doc.setTextColor(255, 255, 255);
-    doc.text(`HOSPIFOOD QUALITY`, 20, 20);
-
+    doc.text(`SES - HOSPIFOOD QUALITY`, 20, 20);
     doc.setFontSize(14);
     doc.text(`INFORME DE CALIDAD Y SATISFACCIÓN DEL PACIENTE`, 20, 30);
     doc.setFontSize(11);
@@ -75,12 +74,13 @@ export const generarReportePDF = async ({
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
     doc.text(`Centro Hospitalario: ${nombreHospital}`, 25, 68);
-    doc.text(`Tipo de Informe: ${tituloReporte.toUpperCase()}`, 25, 74);
-    doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 25, 80);
-    doc.text(`Volumen de Muestra: ${totalEncuestas} encuestas procesadas`, 25, 86);
+    doc.text(`Unidad / Planta: ${nombrePlanta}`, 25, 74); // 👈 Añadido al PDF
+    doc.text(`Tipo de Informe: ${tituloReporte.toUpperCase()}`, 25, 80);
+    doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 25, 86);
+    doc.text(`Volumen de Muestra: ${totalEncuestas} encuestas procesadas`, 25, 92);
 
     doc.setDrawColor(200, 200, 200);
-    doc.line(20, 92, 190, 92); 
+    doc.line(20, 98, 190, 98); 
 
     const mediaGlobal = (encuestasFiltradas.reduce((acc, curr) => acc + curr.notaMedia, 0) / totalEncuestas).toFixed(1);
     const turnosValidos = dataTurnos.filter(t => t.nota > 0);
@@ -92,12 +92,12 @@ export const generarReportePDF = async ({
 
     doc.setFontSize(13);
     doc.setTextColor(37, 99, 235);
-    doc.text("1. Resumen Ejecutivo", 20, 105);
+    doc.text("1. Resumen Ejecutivo", 20, 110);
 
     doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
     const lineasTexto = doc.splitTextToSize(textoAnalisis, 170);
-    doc.text(lineasTexto, 20, 113);
+    doc.text(lineasTexto, 20, 118);
 
     doc.setFontSize(13);
     doc.setTextColor(37, 99, 235);
@@ -126,11 +126,12 @@ export const generarReportePDF = async ({
     doc.setTextColor(80, 80, 80);
     doc.text("A continuación se detallan las respuestas individuales y comentarios proporcionados por los pacientes:", 20, 26);
 
+    // 👈 Añadimos la columna Planta a la tabla del reporte PDF
     autoTable(doc, {
         startY: 32,
-        head: [['Fecha', 'Turno', 'Nota Media', 'Comentarios del Paciente']],
-        body: encuestasFiltradas.map(e => [e.fecha, e.turno, `${e.notaMedia} / 5`, e.sugerencia || "Sin comentarios."]),
-        styles: { fontSize: 9, cellPadding: 3 },
+        head: [['Fecha', 'Planta', 'Turno', 'Nota Media', 'Comentarios del Paciente']],
+        body: encuestasFiltradas.map(e => [e.fecha, e.planta || '-', e.turno, `${e.notaMedia} / 5`, e.sugerencia || "Sin comentarios."]),
+        styles: { fontSize: 8, cellPadding: 3 },
         headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 247, 250] },
         margin: { top: 30 }

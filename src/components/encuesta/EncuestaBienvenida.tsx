@@ -4,6 +4,7 @@ import { Card, CardContent } from "../ui/card";
 import type { Turno } from "../../interfaces/Turnos";
 
 import heroImg from "../../assets/portada.jpg";
+import { PLANTAS_HOSPITALARIAS } from "../../utils/constants";
 
 interface Props {
     turnosDisponibles: Turno[];
@@ -24,20 +25,6 @@ const getIconoTurno = (nombre: string) => {
     return '🍽️';
 };
 
-// LISTA DE PLANTAS ORDENADA ALFABÉTICAMENTE 
-const PLANTAS_HOSPITALARIAS = [
-    "Cardiologia",
-    "Gastroenterologia",
-    "Medicina interna",
-    "Neumologia",
-    "Oncologia",
-    "Otorrinolaringologia",
-    "Pediatria",
-    "Salud mental",
-    "Tocologia-Obstetricia",
-    "Traumatologia",
-    "Uro-ginecologia"
-].sort(); // Usamos sort() para garantizar el orden alfabético
 
 export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turnoSeleccionado, onChangePlanta, onChangeTurno, onComenzar }: Props) => {
     return (
