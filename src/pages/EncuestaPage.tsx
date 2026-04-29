@@ -6,6 +6,9 @@ import type { EstadoEncuesta } from "../interfaces/Respuestas";
 import { EncuestaBienvenida } from "../components/encuesta/EncuestaBienvenida";
 import { EncuestaFormulario } from "../components/encuesta/EncuestaFormulario";
 
+// 👇 Importamos nuestro Modal de Confirmación
+import { ConfirmModal } from "../components/ui/ConfirmModal";
+
 // Controla datos y lógica, y delega toda la vista a los dos 
 // componentes EncuestaBienvenida y EncuestaFormulario
 
@@ -18,6 +21,11 @@ export const EncuestaPage = () => {
     const [loading, setLoading] = useState(true);
     const [enviando, setEnviando] = useState(false);
     const [encuestaCompletada, setEncuestaCompletada] = useState(false);
+
+    // 👇 NUEVO ESTADO: Control del Modal de Alerta 👇
+    const [modalAlerta, setModalAlerta] = useState<{isOpen: boolean; title: string; message: string; type: 'warning' | 'error'}>({ 
+        isOpen: false, title: "", message: "", type: "warning" 
+    });
 
     const [datosEncuesta, setDatosEncuesta] = useState<EstadoEncuesta>({
         planta: '', turno: '' as any, sugerencia: '', respuestas: []
@@ -51,7 +59,13 @@ export const EncuestaPage = () => {
 
     const handleComenzar = () => {
         if (!datosEncuesta.planta || !datosEncuesta.turno) {
-            alert("Por favor, selecciona la planta y la comida para comenzar.");
+            
+            setModalAlerta({
+                isOpen: true,
+                title: "Faltan datos",
+                message: "Por favor, selecciona la planta y la comida para comenzar.",
+                type: "warning"
+            });
             return;
         }
         setPantalla("preguntas");
@@ -88,7 +102,13 @@ export const EncuestaPage = () => {
 
             setEncuestaCompletada(true);
         } catch (error: any) {
-            alert("Error al enviar: " + error.message);
+            
+            setModalAlerta({
+                isOpen: true,
+                title: "Error al enviar",
+                message: "Hubo un problema de conexión. Inténtalo de nuevo. " + error.message,
+                type: "error"
+            });
         } finally {
             setEnviando(false); 
         }
@@ -108,33 +128,45 @@ export const EncuestaPage = () => {
     }
 
     // --- DELEGACIÓN DE VISTAS (RENDER) ---
-    if (pantalla === "bienvenida") {
-        return (
-            <EncuestaBienvenida 
-                turnosDisponibles={turnosDB}
-                plantaSeleccionada={datosEncuesta.planta}
-                turnoSeleccionado={datosEncuesta.turno as string}
-                onChangePlanta={(val) => setDatosEncuesta(prev => ({...prev, planta: val}))}
-                onChangeTurno={(val) => setDatosEncuesta(prev => ({...prev, turno: val as any}))}
-                onComenzar={handleComenzar}
-            />
-        );
-    }
-
     return (
-        <EncuestaFormulario 
-            pasoActual={pasoActual}
-            totalPasos={totalPasos}
-            totalPreguntas={totalPreguntas}
-            preguntas={preguntasDB}
-            respuestasActuales={datosEncuesta.respuestas}
-            sugerencia={datosEncuesta.sugerencia}
-            enviando={enviando}
-            onSeleccion={manejarSeleccion}
-            onChangeSugerencia={(val) => setDatosEncuesta(prev => ({...prev, sugerencia: val}))}
-            onAnterior={() => pasoActual === 1 ? setPantalla("bienvenida") : setPasoActual(pasoActual - 1)}
-            onSiguiente={() => setPasoActual(pasoActual + 1)}
-            onFinalizar={enviarEncuesta}
-        />
+        <>
+            {pantalla === "bienvenida" ? (
+                <EncuestaBienvenida 
+                    turnosDisponibles={turnosDB}
+                    plantaSeleccionada={datosEncuesta.planta}
+                    turnoSeleccionado={datosEncuesta.turno as string}
+                    onChangePlanta={(val) => setDatosEncuesta(prev => ({...prev, planta: val}))}
+                    onChangeTurno={(val) => setDatosEncuesta(prev => ({...prev, turno: val as any}))}
+                    onComenzar={handleComenzar}
+                />
+            ) : (
+                <EncuestaFormulario 
+                    pasoActual={pasoActual}
+                    totalPasos={totalPasos}
+                    totalPreguntas={totalPreguntas}
+                    preguntas={preguntasDB}
+                    respuestasActuales={datosEncuesta.respuestas}
+                    sugerencia={datosEncuesta.sugerencia}
+                    enviando={enviando}
+                    onSeleccion={manejarSeleccion}
+                    onChangeSugerencia={(val) => setDatosEncuesta(prev => ({...prev, sugerencia: val}))}
+                    onAnterior={() => pasoActual === 1 ? setPantalla("bienvenida") : setPasoActual(pasoActual - 1)}
+                    onSiguiente={() => setPasoActual(pasoActual + 1)}
+                    onFinalizar={enviarEncuesta}
+                />
+            )}
+
+            
+            <ConfirmModal 
+                isOpen={modalAlerta.isOpen}
+                title={modalAlerta.title}
+                message={modalAlerta.message}
+                type={modalAlerta.type}
+                showCancel={false} 
+                confirmText="Entendido"
+                onConfirm={() => setModalAlerta(prev => ({ ...prev, isOpen: false }))}
+                onCancel={() => setModalAlerta(prev => ({ ...prev, isOpen: false }))}
+            />
+        </>
     );
 };
