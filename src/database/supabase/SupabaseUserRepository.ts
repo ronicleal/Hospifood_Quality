@@ -57,7 +57,8 @@ export class SupabaseUserRepository implements UserRepository {
                 id: data.user.id,
                 nombre_completo: nombreCompleto,
                 rol: 'gestor',
-                avatar_url: avatarUrl 
+                avatar_url: avatarUrl,
+                email: email 
             }]);
             if (profileError) return { user: null, error: profileError };
         }

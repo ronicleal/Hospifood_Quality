@@ -9,6 +9,9 @@ import { EncuestaFormulario } from "../components/encuesta/EncuestaFormulario";
 // 👇 Importamos nuestro Modal de Confirmación
 import { ConfirmModal } from "../components/ui/ConfirmModal";
 
+// 👇 Importamos nuestro servicio de notificaciones 👇
+import { notificarTemperaturaBaja } from "../utils/notificaciones";
+
 // Controla datos y lógica, y delega toda la vista a los dos 
 // componentes EncuestaBienvenida y EncuestaFormulario
 
@@ -99,6 +102,24 @@ export const EncuestaPage = () => {
 
             const { error: errorRespuestas } = await supabase.from('respuestas').insert(respuestasParaGuardar);
             if (errorRespuestas) throw errorRespuestas;
+
+            // 👇 LÓGICA DE ALERTA DE TEMPERATURA INTEGRADA AQUÍ 👇
+            const preguntaTemperatura = preguntasDB.find(p => p.titulo.toLowerCase().includes('temperatura'));
+                
+            
+            if (preguntaTemperatura) {
+                const respuestaTemp = datosEncuesta.respuestas.find(r => r.parametro_id === preguntaTemperatura.id);
+                
+                // Si la evaluó con 1 o 2, disparamos el email
+                if (respuestaTemp && respuestaTemp.valor !== null && respuestaTemp.valor <= 2) {
+                    notificarTemperaturaBaja(
+                        parseInt(hospitalIdUrl), 
+                        datosEncuesta.planta, 
+                        datosEncuesta.turno
+                    );
+                }
+            }
+            // 👆 FIN DE LÓGICA DE ALERTA 👆
 
             setEncuestaCompletada(true);
         } catch (error: any) {
