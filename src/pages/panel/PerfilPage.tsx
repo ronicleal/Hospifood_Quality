@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
-import { Save, ShieldCheck, Mail, User } from "lucide-react";
+import { Save, ShieldCheck, Mail, User, Clock } from "lucide-react";
 import { isPasswordValid } from "../../utils/regex";
 import { PasswordSegura } from "../../components/ui/PasswordSegura";
 
@@ -41,8 +41,17 @@ export const PerfilPage = () => {
         setLoading(false);
     };
 
-    // Variable para saber si debemos bloquear el botón de guardar
     const isFormInvalid = newPass.length > 0 && !isPasswordValid(newPass);
+
+    // Función para formatear la fecha a DD/MM/YYYY HH:MM h
+    const formatFecha = (isoString?: string) => {
+        if (!isoString) return "No hay registro reciente";
+        const date = new Date(isoString);
+        return date.toLocaleString('es-ES', { 
+            day: '2-digit', month: '2-digit', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit' 
+        }) + ' h';
+    };
 
     return (
         <div className="max-w-2xl mx-auto space-y-8 animate-fade-in pb-10">
@@ -69,6 +78,14 @@ export const PerfilPage = () => {
                         <Label className="flex items-center gap-2"><Mail size={16} className="text-muted-foreground"/> Email Corporativo</Label>
                         <Input value={session?.user.email || ""} disabled className="bg-muted cursor-not-allowed font-medium text-foreground" />
                     </div>
+                    
+                    
+                    {!isAdmin && (
+                        <div className="space-y-2 md:col-span-2">
+                            <Label className="flex items-center gap-2"><Clock size={16} className="text-muted-foreground"/> Último acceso registrado</Label>
+                            <Input value={formatFecha(profile?.ultimo_acceso)} disabled className="bg-muted cursor-not-allowed font-medium text-foreground" />
+                        </div>
+                    )}
                 </div>
 
                 <div>
@@ -79,7 +96,6 @@ export const PerfilPage = () => {
                         <Label htmlFor="pass">Nueva Contraseña (opcional)</Label>
                         <Input id="pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
                         
-                        {/* 👇 VALIDACIÓN DINÁMICA 👇 */}
                         {newPass.length > 0 && <PasswordSegura password={newPass} />}
                     </div>
                 </div>
@@ -91,7 +107,6 @@ export const PerfilPage = () => {
                 )}
 
                 <div className="flex justify-end pt-4">
-                    {/* 👇 Bloqueamos el botón si la contraseña no cumple los requisitos 👇 */}
                     <Button type="submit" disabled={loading || isFormInvalid} className="gap-2 px-8 h-12 text-md">
                         <Save size={18} /> {loading ? "Guardando..." : "Guardar Cambios"}
                     </Button>

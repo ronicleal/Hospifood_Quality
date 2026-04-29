@@ -9,6 +9,7 @@ export class SupabaseGestorRepository implements GestorRepository {
             .select(`
                 id,
                 nombre_completo,
+                ultimo_acceso,
                 perfiles_hospitales (
                     hospital_id,
                     hospitales ( nombre )
@@ -20,6 +21,7 @@ export class SupabaseGestorRepository implements GestorRepository {
         const datosFormateados = data?.map((gestor: any) => ({
             id: gestor.id,
             nombre_completo: gestor.nombre_completo,
+            ultimo_acceso: gestor.ultimo_acceso, // 👈 Lo mapeamos
             hospitales: gestor.perfiles_hospitales || []
         }));
             
@@ -50,6 +52,16 @@ export class SupabaseGestorRepository implements GestorRepository {
         // 2. Luego llamamos a nuestra función SQL segura para borrar la autenticación
         const { error } = await supabase.rpc('borrar_usuario_completo', { usuario_id: id });
       
+        return { error };
+    }
+
+    // 👇 NUEVO MÉTODO PARA ACTUALIZAR LA FECHA DE ACCESO 👇
+    async updateUltimoAcceso(id: string) {
+        const { error } = await supabase
+            .from('perfiles')
+            .update({ ultimo_acceso: new Date().toISOString() })
+            .eq('id', id);
+            
         return { error };
     }
 }
