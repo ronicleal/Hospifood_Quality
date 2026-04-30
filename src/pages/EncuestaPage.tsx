@@ -6,11 +6,11 @@ import type { EstadoEncuesta } from "../interfaces/Respuestas";
 import { EncuestaBienvenida } from "../components/encuesta/EncuestaBienvenida";
 import { EncuestaFormulario } from "../components/encuesta/EncuestaFormulario";
 
-// 👇 Importamos nuestro Modal de Confirmación
 import { ConfirmModal } from "../components/ui/ConfirmModal";
 
-// 👇 Importamos nuestro servicio de notificaciones 👇
 import { notificarTemperaturaBaja } from "../utils/notificaciones";
+
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 
 // Controla datos y lógica, y delega toda la vista a los dos 
 // componentes EncuestaBienvenida y EncuestaFormulario
@@ -25,7 +25,6 @@ export const EncuestaPage = () => {
     const [enviando, setEnviando] = useState(false);
     const [encuestaCompletada, setEncuestaCompletada] = useState(false);
 
-    // 👇 NUEVO ESTADO: Control del Modal de Alerta 👇
     const [modalAlerta, setModalAlerta] = useState<{isOpen: boolean; title: string; message: string; type: 'warning' | 'error'}>({ 
         isOpen: false, title: "", message: "", type: "warning" 
     });
@@ -151,6 +150,11 @@ export const EncuestaPage = () => {
     // --- DELEGACIÓN DE VISTAS (RENDER) ---
     return (
         <>
+            {/* Botón de Modo Oscuro flotante en la esquina */}
+            <div className="absolute top-4 right-4 z-50">
+                <ThemeToggle />
+            </div>
+
             {pantalla === "bienvenida" ? (
                 <EncuestaBienvenida 
                     turnosDisponibles={turnosDB}
