@@ -22,6 +22,9 @@ import { DashboardHeader } from "../../components/dashboard/DashboardHeader";
 import { DashboardGraficos } from "../../components/dashboard/DashboardGraficos";
 import { DashboardDetalles } from "../../components/dashboard/DashboardDetalles";
 
+// 👇 Importamos el componente del Chatbot IA
+import { ChatbotIA } from "../../components/ui/ChatbotIA";
+
 export const DashboardPage = () => {
     const { profile, isAdmin } = useAuthStore();
     const misHospitales = profile?.hospitales || [];
@@ -32,7 +35,6 @@ export const DashboardPage = () => {
     const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
     const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
     
-    // 👇 Nuevo estado para el filtro de planta
     const [filtroPlanta, setFiltroPlanta] = useState<string>("Todas");
     
     const [detallesGestores, setDetallesGestores] = useState<GestorData[]>([]);
@@ -59,7 +61,6 @@ export const DashboardPage = () => {
             let idsAConsultar = filtroHospitalId === 0 ? (isAdmin ? [] : misHospitales) : [filtroHospitalId];
             let isGlobal = filtroHospitalId === 0 && isAdmin;
 
-            // 👇 Pasamos el nuevo parámetro de planta al repositorio
             const plantaParam = filtroPlanta === "Todas" ? null : filtroPlanta;
             const { data: stast } = await statsRepo.getDashboardStats(idsAConsultar, isGlobal, plantaParam);
             
@@ -80,7 +81,13 @@ export const DashboardPage = () => {
             setLoading(false);
         }
         loadData();
-    }, [misHospitales, isAdmin, filtroHospitalId, filtroPlanta]); // 👈 Añadimos filtroPlanta a las dependencias para que recargue al cambiar
+    }, [misHospitales, isAdmin, filtroHospitalId, filtroPlanta]); 
+
+    // 👇 Calculamos qué ID de hospital pasarle al Chatbot 👇
+    // Si hay un filtro seleccionado, usamos ese. Si no, usamos el primer hospital asignado al gestor.
+    const hospitalIdParaChatbot = filtroHospitalId !== 0 
+        ? filtroHospitalId 
+        : (misHospitales.length > 0 ? misHospitales[0] : 0);
 
     // Muro de seguridad visual
     if (!isAdmin && misHospitales.length === 0) {
@@ -97,7 +104,7 @@ export const DashboardPage = () => {
     if (!data) return <div className="p-10 text-center font-bold text-red-500">Error al cargar los datos del servidor.</div>;
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10">
+        <div className="space-y-8 animate-fade-in pb-10 relative">
             {/* Cabecera y Filtros */}
             <DashboardHeader 
                 isAdmin={isAdmin} 
@@ -105,8 +112,8 @@ export const DashboardPage = () => {
                 filtroHospitalId={filtroHospitalId} 
                 setFiltroHospitalId={setFiltroHospitalId} 
                 hospitalesDisponibles={hospitalesDisponibles} 
-                filtroPlanta={filtroPlanta}          // 👈 Pasamos el estado de la planta
-                setFiltroPlanta={setFiltroPlanta}    // 👈 Pasamos la función para cambiar la planta
+                filtroPlanta={filtroPlanta}          
+                setFiltroPlanta={setFiltroPlanta}    
             />
 
             {/* Tarjetas KPI Superiores */}
@@ -125,6 +132,12 @@ export const DashboardPage = () => {
                 detallesTurnos={detallesTurnos}
                 detallesParametros={detallesParametros}
             />
+
+            {/* 👇 BOTÓN DEL CHATBOT IA 👇 */}
+            {/* Solo se muestra si NO es admin y si tiene un hospital válido asociado */}
+            {!isAdmin && hospitalIdParaChatbot !== 0 && (
+                <ChatbotIA hospitalId={hospitalIdParaChatbot} />
+            )}
         </div>
     );
 };
