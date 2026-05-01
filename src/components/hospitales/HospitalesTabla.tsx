@@ -1,4 +1,4 @@
-import { Power, PowerOff, Trash2 } from "lucide-react";
+import { Power, PowerOff, Trash2, Pencil } from "lucide-react"; // 👈 Añadido Pencil
 import { Button } from "../ui/button";
 import type { Hospital } from "../../interfaces/Hospital";
 
@@ -6,9 +6,10 @@ interface Props {
     hospitales: Hospital[];
     onToggleActivo: (id: number, estadoActual: boolean) => void;
     onDelete: (id: number) => void;
+    onEdit: (hospital: Hospital) => void; // 👈 Nueva prop
 }
 
-export const HospitalesTabla = ({ hospitales, onToggleActivo, onDelete }: Props) => {
+export const HospitalesTabla = ({ hospitales, onToggleActivo, onDelete, onEdit }: Props) => {
     return (
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -43,6 +44,16 @@ export const HospitalesTabla = ({ hospitales, onToggleActivo, onDelete }: Props)
                                     <Button variant="outline" size="sm" onClick={() => onToggleActivo(hospital.id, hospital.activo)} className={hospital.activo ? 'text-muted-foreground border-border hover:bg-accent' : 'text-primary border-primary/20 hover:bg-primary/10'}>
                                         {hospital.activo ? <PowerOff size={16} /> : <Power size={16} />}
                                     </Button>
+                                    
+                                    {/* 👇 Botón Editar */}
+                                    <Button 
+                                        variant="outline" size="sm" 
+                                        onClick={() => onEdit(hospital)} 
+                                        className="text-primary border-primary/20 hover:bg-primary/10"
+                                    >
+                                        <Pencil size={16} />
+                                    </Button>
+
                                     <Button variant="outline" size="sm" onClick={() => onDelete(hospital.id)} className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive">
                                         <Trash2 size={16} />
                                     </Button>

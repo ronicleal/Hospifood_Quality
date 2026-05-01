@@ -29,4 +29,14 @@ export class SupabaseHospitalRepository implements HospitalRepository {
         const { error } = await supabase.from('hospitales').delete().eq('id', id);
         return { error };
     }
+
+    async updateHospital(id: number, nombre: string, provincia: string, codigo_centro: string, area_salud: string) {
+        const { data, error } = await supabase
+            .from('hospitales')
+            .update({ nombre, provincia, codigo_centro, area_salud })
+            .eq('id', id)
+            .select()
+            .single();
+        return { data, error };
+    }
 }

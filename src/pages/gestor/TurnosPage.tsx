@@ -6,7 +6,7 @@ import { useAuthStore } from "../../store/authStore";
 // Componentes
 import { TurnosForm } from "../../components/turnos/TurnosForm";
 import { TurnosTabla } from "../../components/turnos/TurnosTabla";
-import { ConfirmModal } from "../../components/ui/ConfirmModal"; // 👈 Añadido
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 
 export const TurnosPage = () => {
     const { profile, isAdmin } = useAuthStore();
@@ -18,7 +18,9 @@ export const TurnosPage = () => {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // 👇 Estado para el modal de borrado
+    // 👇 NUEVO: Estado para saber qué turno estamos editando
+    const [turnoEnEdicion, setTurnoEnEdicion] = useState<Turno | null>(null);
+
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
 
     const turnoRepo = createTurnoRepository();
@@ -41,13 +43,47 @@ export const TurnosPage = () => {
         if (isAdmin || misHospitales.length > 0) cargarTurnos();
     }, [misHospitales.length, isAdmin]);
 
-    const handleCreate = async (e: React.FormEvent) => {
+    // 👇 NUEVO: Funciones para manejar la edición
+    const iniciarEdicion = (turno: Turno) => {
+        setTurnoEnEdicion(turno);
+        setNuevoNombre(turno.nombre);
+        setHospitalSeleccionado(turno.hospital_id);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube el scroll hacia el formulario
+    };
+
+    const cancelarEdicion = () => {
+        setTurnoEnEdicion(null);
+        setNuevoNombre("");
+        if (!isAdmin && misHospitales.length > 0) {
+            setHospitalSeleccionado(misHospitales[0]);
+        }
+    };
+
+    // 👇 MODIFICADO: Ahora maneja Create y Update
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nuevoNombre.trim() || hospitalSeleccionado === 0) return;
+        
         setLoading(true);
-        const { error } = await turnoRepo.createTurno(nuevoNombre.trim(), hospitalSeleccionado);
-        if (error) setErrorMsg("Error al crear el turno.");
-        else { setNuevoNombre(""); await cargarTurnos(); }
+        
+        if (turnoEnEdicion) {
+            // Lógica de ACTUALIZAR
+            // Asegúrate de tener este método updateTurno en tu repositorio
+            const { error } = await turnoRepo.updateTurno(turnoEnEdicion.id, nuevoNombre.trim());
+            if (error) setErrorMsg("Error al actualizar el turno.");
+            else {
+                cancelarEdicion();
+                await cargarTurnos();
+            }
+        } else {
+            // Lógica de CREAR
+            const { error } = await turnoRepo.createTurno(nuevoNombre.trim(), hospitalSeleccionado);
+            if (error) setErrorMsg("Error al crear el turno.");
+            else { 
+                setNuevoNombre(""); 
+                await cargarTurnos(); 
+            }
+        }
         setLoading(false);
     };
 
@@ -56,7 +92,6 @@ export const TurnosPage = () => {
         await cargarTurnos(); 
     };
 
-    // 👇 Nuevas funciones para manejar el modal
     const solicitarBorrado = (id: number) => {
         setDeleteModal({ isOpen: true, id });
     };
@@ -86,17 +121,19 @@ export const TurnosPage = () => {
                 <TurnosForm 
                     nuevoNombre={nuevoNombre} setNuevoNombre={setNuevoNombre}
                     hospitalSeleccionado={hospitalSeleccionado} setHospitalSeleccionado={setHospitalSeleccionado}
-                    misHospitales={misHospitales} loading={loading} onSubmit={handleCreate}
+                    misHospitales={misHospitales} loading={loading} 
+                    onSubmit={handleSubmit} // 👈 Cambiado
+                    isEditing={!!turnoEnEdicion} // 👈 Nueva prop
+                    onCancelEdit={cancelarEdicion} // 👈 Nueva prop
                 />
             )}
 
-            {/* 👇 La tabla sigue igual, pero le pasamos solicitarBorrado en vez del antiguo handleDelete */}
             <TurnosTabla 
                 turnos={turnos} isAdmin={isAdmin} loading={loading}
                 onToggleActivo={handleToggleActivo} onDelete={solicitarBorrado}
+                onEdit={iniciarEdicion} // 👈 Pasamos la función a la tabla
             />
 
-            {/* 👇 El modal */}
             <ConfirmModal 
                 isOpen={deleteModal.isOpen}
                 title="¿Eliminar turno?"

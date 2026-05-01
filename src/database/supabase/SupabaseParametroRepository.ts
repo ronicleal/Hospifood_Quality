@@ -38,4 +38,14 @@ export class SupabaseParametroRepository implements ParametroRepository {
         const { error } = await supabase.from('parametros').delete().eq('id', id);
         return { error };
     }
+
+    async updateParametro(id: number, titulo: string, descripcion: string) {
+        const { data, error } = await supabase
+            .from('parametros')
+            .update({ titulo, descripcion })
+            .eq('id', id)
+            .select()
+            .single();
+        return { data, error };
+    }
 }

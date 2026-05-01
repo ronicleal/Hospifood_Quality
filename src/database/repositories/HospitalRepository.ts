@@ -5,4 +5,5 @@ export interface HospitalRepository {
     createHospital(nombre: string, provincia: string, codigo_centro: string, area_salud: string): Promise<{ data: Hospital | null; error: any }>;
     toggleActivo(id: number, activo: boolean): Promise<{ error: any }>;
     deleteHospital(id: number): Promise<{ error: any }>;
+    updateHospital(id: number, nombre: string, provincia: string, codigo_centro: string, area_salud: string): Promise<{ data: Hospital | null; error: any }>;
 }

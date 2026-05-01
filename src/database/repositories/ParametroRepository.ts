@@ -5,4 +5,5 @@ export interface ParametroRepository {
     createParametro(titulo: string, descripcion: string, hospitalId: number): Promise<{ data: Parametro | null; error: any }>;
     toggleActivo(id: number, activo: boolean): Promise<{ error: any }>;
     deleteParametro(id: number): Promise<{ error: any }>;
+    updateParametro(id: number, titulo: string, descripcion: string): Promise<{ data: Parametro | null; error: any }>;
 }

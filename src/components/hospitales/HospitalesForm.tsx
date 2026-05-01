@@ -1,4 +1,4 @@
-import { Building2, Plus } from "lucide-react";
+import { Building2, Plus, Save, X } from "lucide-react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -10,14 +10,26 @@ interface Props {
     areaSalud: string; setAreaSalud: (val: string) => void;
     loading: boolean;
     onSubmit: (e: React.FormEvent) => void;
+    // 👇 Nuevas props para edición
+    isEditing?: boolean;
+    onCancelEdit?: () => void;
 }
 
 export const HospitalesForm = (props: Props) => {
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 text-card-foreground flex items-center gap-2">
-                <Building2 size={20} className="text-primary" /> Dar de Alta Nuevo Hospital
-            </h2>
+        <div className={`border rounded-xl p-6 shadow-sm transition-colors ${props.isEditing ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'}`}>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
+                    <Building2 size={20} className="text-primary" />
+                    {props.isEditing ? 'Modificar Hospital' : 'Dar de Alta Nuevo Hospital'}
+                </h2>
+                {props.isEditing && (
+                    <Button variant="ghost" size="sm" onClick={props.onCancelEdit} className="text-muted-foreground hover:text-destructive">
+                        <X size={18} className="mr-1" /> Cancelar
+                    </Button>
+                )}
+            </div>
+
             <form onSubmit={props.onSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2 lg:col-span-2">
@@ -38,8 +50,16 @@ export const HospitalesForm = (props: Props) => {
                     </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                    <Button type="submit" disabled={props.loading || !props.nombre || !props.codigoCentro} className="gap-2 w-full sm:w-auto">
-                        <Plus size={18} /> Registrar Hospital   
+                    <Button
+                        type="submit"
+                        disabled={props.loading || !props.nombre || !props.codigoCentro}
+                        className={`gap-2 w-full sm:w-auto ${props.isEditing
+                                ? 'bg-primary/90 hover:bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20'
+                                : ''
+                            }`}
+                    >
+                        {props.isEditing ? <Save size={18} /> : <Plus size={18} />}
+                        {props.isEditing ? 'Guardar Cambios' : 'Registrar Hospital'}
                     </Button>
                 </div>
             </form>

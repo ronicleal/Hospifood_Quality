@@ -38,4 +38,17 @@ export class SupabaseTurnoRepository implements TurnoRepository {
         const { error } = await supabase.from('turnos').delete().eq('id', id);
         return { error };
     }
+
+    async updateTurno(id: number, nombre: string) {
+        const { data, error } = await supabase
+            .from('turnos')
+            .update({ nombre })
+            .eq('id', id)
+            .select()
+            .single();
+            
+        return { data, error };
+    }
+
+    
 }

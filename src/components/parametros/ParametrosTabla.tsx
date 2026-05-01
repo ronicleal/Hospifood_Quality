@@ -1,4 +1,4 @@
-import { Building2, Power, PowerOff, Trash2 } from "lucide-react";
+import { Building2, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Parametro } from "../../interfaces/Parametro";
 
@@ -8,9 +8,10 @@ interface Props {
     loading: boolean;
     onToggleActivo: (id: number, estadoActual: boolean) => void;
     onDelete: (id: number) => void;
+    onEdit: (param: Parametro) => void;
 }
 
-export const ParametrosTabla = ({ parametros, isAdmin, loading, onToggleActivo, onDelete }: Props) => {
+export const ParametrosTabla = ({ parametros, isAdmin, loading, onToggleActivo, onDelete, onEdit }: Props) => {
     return (
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-left border-collapse">
@@ -52,6 +53,13 @@ export const ParametrosTabla = ({ parametros, isAdmin, loading, onToggleActivo, 
                                     <Button variant="outline" size="sm" onClick={() => onToggleActivo(param.id, param.activo)}
                                         className={param.activo ? 'text-muted-foreground border-border hover:bg-accent' : 'text-primary border-primary/20 hover:bg-primary/10'}>
                                         {param.activo ? <PowerOff size={16} /> : <Power size={16} />}
+                                    </Button>
+                                    <Button 
+                                        variant="outline" size="sm" 
+                                        onClick={() => onEdit(param)}
+                                        className="text-primary border-primary/20 hover:bg-primary/10"
+                                    >
+                                        <Pencil size={16} />
                                     </Button>
                                     <Button variant="outline" size="sm" onClick={() => onDelete(param.id)} className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive">
                                         <Trash2 size={16} />
