@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { 
     LayoutDashboard, History, FileText, LogOut, 
-    Users, Clock, ListChecks, Building2, Globe, BarChart3 
+    Users, Clock, ListChecks, Building2, Globe 
 } from "lucide-react";
 
 import { useAuthStore } from "../store/authStore";
@@ -35,8 +35,16 @@ export const PanelLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background font-sans">
-            <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+        <div className="min-h-screen bg-background font-sans relative">
+            
+            {/* 👇 FONDOS DEGRADADOS FIJOS 👇 */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+            </div>
+
+            {/* 👇 Cabecera con efecto cristal (bg-card/95 y backdrop-blur-sm) 👇 */}
+            <header className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
 
@@ -49,11 +57,9 @@ export const PanelLayout = () => {
                         </div>
 
                         {/* NAVEGACIÓN DINÁMICA POR ROLES */}
-                        <nav className="hidden md:flex space-x-2 lg:space-x-4 overflow-x-auto">
+                        <nav className="hidden md:flex space-x-2 lg:space-x-4 overflow-x-auto relative z-10">
                             {isAdmin ? (
-                                /* ==========================================
-                                   MENÚ EXCLUSIVO DEL ADMINISTRADOR (DIRECTIVA)
-                                   ========================================== */
+                                /* MENÚ EXCLUSIVO DEL ADMINISTRADOR */
                                 <>
                                     <Link to="/panel/dashboard" className={getLinkClass('/panel/dashboard')}>
                                         <Globe size={18} /> Visión Global
@@ -70,9 +76,7 @@ export const PanelLayout = () => {
                                     </Link>
                                 </>
                             ) : (
-                                /* ==========================================
-                                   MENÚ EXCLUSIVO DEL GESTOR LOCAL
-                                   ========================================== */
+                                /* MENÚ EXCLUSIVO DEL GESTOR LOCAL */
                                 <>
                                     <Link to="/panel/dashboard" className={getLinkClass('/panel/dashboard')}>
                                         <LayoutDashboard size={18} /> Dashboard
@@ -95,17 +99,13 @@ export const PanelLayout = () => {
                                     <Link to="/panel/parametros" className={getLinkClass('/panel/parametros')}>
                                         <ListChecks size={18} /> Mis Parámetros
                                     </Link>
-
                                 </>
                             )}
                         </nav>
 
                         {/* PERFIL Y LOGOUT */}
-                        <div className="flex items-center gap-4">
-                            
-                            <Link to="/panel/perfil" className="flex items-center gap-3 hover:bg-muted p-1 pr-3 rounded-full transition-colors group cursor-pointer" title="Ir a mi perfil">
-                                
-                                {/* 👇 DISTINGUIMOS ENTRE ADMIN Y GESTOR 👇 */}
+                        <div className="flex items-center gap-4 relative z-10">
+                            <Link to="/panel/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-1 pr-3 rounded-full transition-colors group cursor-pointer" title="Ir a mi perfil">
                                 {isAdmin ? (
                                     <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold border-2 border-purple-500 group-hover:scale-110 transition-transform shadow-sm">
                                         AD
@@ -113,7 +113,7 @@ export const PanelLayout = () => {
                                 ) : (
                                     <img 
                                         src={profile?.avatar_url || "/src/avatars/avatar1.jpg"} 
-                                        className="w-9 h-9 rounded-full border-2 border-primary group-hover:scale-110 transition-transform bg-background shadow-sm" 
+                                        className="w-9 h-9 rounded-full border-2 border-primary group-hover:scale-110 transition-transform bg-background shadow-sm object-cover" 
                                         alt="Mi Perfil" 
                                     />
                                 )}
@@ -143,7 +143,8 @@ export const PanelLayout = () => {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in text-foreground">
+            {/* 👇 El Main debe tener position relative y z-10 para quedar por encima de las luces 👇 */}
+            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in text-foreground">
                 <Outlet />
             </main>
         </div>
