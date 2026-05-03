@@ -20,7 +20,7 @@ export interface UserRepository{
     logout(): Promise<{ error: any }>;
 
     register(email: string, contrasena: string, nombreCompleto: string, avatarUrl: string): Promise<{ user: any; error: any }>;
-    updateProfile(userId: string, data: { avatarUrl?: string; password?: string }): Promise<{ error: any }>;
+    updateProfile(userId: string, data: { avatarUrl?: string; password?: string, notificaciones_activas?: boolean }): Promise<{ error: any }>;
 
     // Funciones de recuperacion de contraseña
     sendResetPasswordEmail(email: string): Promise<{ error: any }>;

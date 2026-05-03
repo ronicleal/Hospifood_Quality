@@ -1,23 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { createUserRepository } from "../../database/repositories";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
-import { Save, ShieldCheck, Mail, User, Clock } from "lucide-react";
+import { Switch } from "../../components/ui/Switch"; // 👈 Añadido
+import { Save, ShieldCheck, Mail, User, Clock, Bell, BellOff } from "lucide-react"; // 👈 Añadidos Bell y BellOff
 import { isPasswordValid } from "../../utils/regex";
 import { PasswordSegura } from "../../components/ui/PasswordSegura";
 
 export const PerfilPage = () => {
-    const { profile, session, updateAvatar, isAdmin } = useAuthStore();
+    const { profile, session, updateAvatar, updateNotificaciones, isAdmin } = useAuthStore();
     const userRepo = createUserRepository();
 
     const [avatar, setAvatar] = useState(profile?.avatar_url || "/src/avatars/avatar1.jpg");
     const [newPass, setNewPass] = useState("");
     
+    // 👇 Estado para las notificaciones (por defecto activado, o lo que venga del perfil)
+    const [notificaciones, setNotificaciones] = useState(profile?.notificaciones_activas ?? true);
+    
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState({ text: "", type: "" });
+
+    // 👇 Sincronizar el estado si el perfil cambia o tarda en cargar
+    useEffect(() => {
+        if (profile?.notificaciones_activas !== undefined) {
+            setNotificaciones(profile.notificaciones_activas);
+        }
+    }, [profile]);
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,8 +36,10 @@ export const PerfilPage = () => {
         setMsg({ text: "", type: "" });
 
         const updateData: any = { password: newPass || undefined };
+        
         if (!isAdmin) {
             updateData.avatarUrl = avatar;
+            updateData.notificaciones_activas = notificaciones; // 👈 Lo enviamos al repositorio
         }
 
         const { error } = await userRepo.updateProfile(profile!.id, updateData);
@@ -36,7 +49,10 @@ export const PerfilPage = () => {
         } else {
             setMsg({ text: "Perfil actualizado correctamente.", type: "success" });
             setNewPass(""); 
-            if (!isAdmin) updateAvatar(avatar); 
+            if (!isAdmin){
+                updateAvatar(avatar); 
+                updateNotificaciones(notificaciones);
+            } 
         }
         setLoading(false);
     };
@@ -79,6 +95,25 @@ export const PerfilPage = () => {
                         <Input value={session?.user.email || ""} disabled className="bg-muted cursor-not-allowed font-medium text-foreground" />
                     </div>
                     
+                    {/* 👇 SECCIÓN DE NOTIFICACIONES (Solo para responsables de calidad) */}
+                    {!isAdmin && (
+                        <div className="md:col-span-2 p-4 bg-primary/5 rounded-xl border border-primary/10 flex items-center justify-between">
+                            <div className="space-y-1 pr-4">
+                                <Label className="flex items-center gap-2 text-md font-bold cursor-pointer" onClick={() => setNotificaciones(!notificaciones)}>
+                                    {notificaciones ? <Bell size={18} className="text-primary"/> : <BellOff size={18} className="text-muted-foreground"/>}
+                                    Alertas de temperatura
+                                </Label>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Activa esta opción para recibir un correo electrónico automáticamente si la temperatura baja del umbral crítico.
+                                </p>
+                            </div>
+                            <Switch 
+                                checked={notificaciones} 
+                                onCheckedChange={setNotificaciones}
+                                disabled={loading}
+                            />
+                        </div>
+                    )}
                     
                     {!isAdmin && (
                         <div className="space-y-2 md:col-span-2">

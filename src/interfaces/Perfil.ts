@@ -1,6 +1,10 @@
 export interface Perfil{
-    id: string; 
+    id: string;
     nombre_completo: string;
-    rol: 'gestor' | 'admin'
+    rol: "gestor" | "admin";
+    hospitales?: number[];
+    avatar_url?: string;
+    ultimo_acceso?: string;
+    notificaciones_activas?: boolean;
 }
 

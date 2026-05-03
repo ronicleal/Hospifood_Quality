@@ -1,26 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from "../database/supabase/Client";
-
-export interface UserProfile {
-    id: string;
-    nombre_completo: string;
-    rol: "gestor" | "admin";
-    hospitales: number[];
-    avatar_url?: string;
-    ultimo_acceso?: string; // 👈 Lo dejamos aquí en la interfaz
-}
+import type { Perfil } from '../interfaces/Perfil'; // 👈 1. Importamos la interfaz unificada
 
 interface AuthState {
     session: any;
-    profile: UserProfile | null;
+    profile: Perfil | null; // 👈 2. Usamos Perfil en lugar de UserProfile
     isAuthenticated: boolean;
     isAdmin: boolean;
 
-    setSessionAndProfile: (session: any, profile: UserProfile) => void;
+    setSessionAndProfile: (session: any, profile: Perfil) => void;
     clearSession: () => void;
     initialize: () => Promise<void>;
     updateAvatar: (newUrl: string) => void;
+    updateNotificaciones: (activas: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -57,22 +50,20 @@ export const useAuthStore = create<AuthState>()(
                             rol,
                             avatar_url,
                             ultimo_acceso,
+                            notificaciones_activas,
                             perfiles_hospitales ( hospital_id )
                         `)
                         .eq('id', session.user.id)
                         .single();
 
                     if (profileData) {
-                        // Lógica para actualizar el último acceso al hacer login
                         const fechaActual = new Date().toISOString();
                         
-                        // Fire-and-forget (actualiza en segundo plano)
                         supabase.from('perfiles')
                             .update({ ultimo_acceso: fechaActual })
                             .eq('id', session.user.id)
                             .then();
 
-                        // Mapeamos TODOS los hospitales que tenga asignados
                         const hospitalesAsignados = profileData.perfiles_hospitales
                             ? (profileData.perfiles_hospitales as any[]).map(ph => ph.hospital_id)
                             : [];
@@ -85,7 +76,8 @@ export const useAuthStore = create<AuthState>()(
                                 rol: profileData.rol as "gestor" | "admin",
                                 hospitales: hospitalesAsignados,
                                 avatar_url: profileData.avatar_url,
-                                ultimo_acceso: fechaActual // Guardamos la fecha actual en memoria
+                                ultimo_acceso: fechaActual,
+                                notificaciones_activas: profileData.notificaciones_activas // 👈 4. Lo guardamos en el estado
                             },
                             isAuthenticated: true,
                             isAdmin: profileData.rol === 'admin'
@@ -96,6 +88,10 @@ export const useAuthStore = create<AuthState>()(
 
             updateAvatar: (newUrl: string) => set((state) => ({
                 profile: state.profile ? { ...state.profile, avatar_url: newUrl } : null
+            })),
+
+            updateNotificaciones: (activas: boolean) => set((state) => ({
+                profile: state.profile ? { ...state.profile, notificaciones_activas: activas } : null
             })),
             
         }),

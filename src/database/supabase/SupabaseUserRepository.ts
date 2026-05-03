@@ -3,14 +3,14 @@ import { supabase } from "./Client";
 import type { UserRepository } from "../repositories/UserRepository";
 
 export class SupabaseUserRepository implements UserRepository {
-  
+
   async getPerfilByUserId(userId: string) {
     const { data, error } = await supabase
-      .from('perfiles') 
+      .from('perfiles')
       .select('*')
       .eq('id', userId)
       .single();
-      
+
     return { data, error };
   }
 
@@ -49,54 +49,78 @@ export class SupabaseUserRepository implements UserRepository {
 
 
   async register(email: string, contrasena: string, nombreCompleto: string, avatarUrl: string) {
-        const { data, error } = await supabase.auth.signUp({ email, password: contrasena });
-        if (error) return { user: null, error };
+    const { data, error } = await supabase.auth.signUp({ email, password: contrasena });
+    if (error) return { user: null, error };
 
-        if (data.user) {
-            const { error: profileError } = await supabase.from('perfiles').insert([{
-                id: data.user.id,
-                nombre_completo: nombreCompleto,
-                rol: 'gestor',
-                avatar_url: avatarUrl,
-                email: email 
-            }]);
-            if (profileError) return { user: null, error: profileError };
-        }
-        return { user: data.user, error: null };
+    if (data.user) {
+      const { error: profileError } = await supabase.from('perfiles').insert([{
+        id: data.user.id,
+        nombre_completo: nombreCompleto,
+        rol: 'gestor',
+        avatar_url: avatarUrl,
+        email: email
+      }]);
+      if (profileError) return { user: null, error: profileError };
+    }
+    return { user: data.user, error: null };
+  }
+
+
+  async updateProfile(
+    userId: string,
+    { avatarUrl, password, notificaciones_activas }: { avatarUrl?: string; password?: string; notificaciones_activas?: boolean }
+  ) {
+    // 1. Actualización de contraseña en Supabase Auth
+    if (password) {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) return { error };
     }
 
+    // 2. Preparar el objeto de actualización para la tabla 'perfiles'
+    // Usamos un objeto dinámico para actualizar solo lo que se haya enviado
+    const updates: any = {};
 
-    async updateProfile(userId: string, { avatarUrl, password }: { avatarUrl?: string; password?: string }) {
-        // 1. Si el usuario ha escrito una nueva contraseña, la actualizamos
-        if (password) {
-            const { error } = await supabase.auth.updateUser({ password });
-            if (error) return { error };
-        }
-        // 2. Si hay un nuevo avatar, actualizamos su perfil público
-        if (avatarUrl) {
-            const { error } = await supabase.from('perfiles').update({ avatar_url: avatarUrl }).eq('id', userId);
-            if (error) return { error };
-        }
-        return { error: null };
+    if (avatarUrl !== undefined) {
+      updates.avatar_url = avatarUrl;
     }
 
-    async sendResetPasswordEmail(email: string) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            // URL a la que volverá el usuario cuando haga clic en el correo
-            redirectTo: `${window.location.origin}/recuperar-password/confirmar`,
-        });
-        return { error };
+    if (notificaciones_activas !== undefined) {
+      updates.notificaciones_activas = notificaciones_activas;
     }
 
-    async updatePassword(newPassword: string) {
-        const { error } = await supabase.auth.updateUser({ password: newPassword });
-        return { error };
+    // 3. Si hay campos para actualizar en la tabla perfiles, ejecutamos la query
+    if (Object.keys(updates).length > 0) {
+      const { error } = await supabase
+        .from('perfiles')
+        .update(updates)
+        .eq('id', userId);
+
+      if (error) return { error };
     }
 
+    return { error: null };
+  }
 
 
+  async sendResetPasswordEmail(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // URL a la que volverá el usuario cuando haga clic en el correo
+      redirectTo: `${window.location.origin}/recuperar-password/confirmar`,
+    });
+    return { error };
+  }
 
   
-  
-  
+
+  async updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error };
+  }
+
+
+
+
+
+
+
 }

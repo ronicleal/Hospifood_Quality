@@ -12,28 +12,29 @@ export const notificarTemperaturaBaja = async (hospitalId: number, planta: strin
 
         const nombreHospital = hospital?.nombre || "Hospital Desconocido";
 
-        // 2. Buscar a los gestores asignados a ese hospital y sacar SUS EMAILS
+        // 2. Buscar a los gestores asignados y sacar SUS EMAILS + PREFERENCIA DE NOTIFICACIONES
         const { data: asignaciones } = await supabase
             .from('perfiles_hospitales')
-            .select('perfiles(nombre_completo, email)') 
+            .select('perfiles(nombre_completo, email, notificaciones_activas)') // 👈 Añadido el campo nuevo
             .eq('hospital_id', hospitalId);
 
         // 3. Juntar los correos separados por comas
         let correosDestino = "";
         if (asignaciones && asignaciones.length > 0) {
             correosDestino = asignaciones
+                // 👇 FILTRO CLAVE: Solo pasa si tiene email Y tiene las notificaciones activas
+                .filter((a: any) => a.perfiles?.email && a.perfiles?.notificaciones_activas === true) 
                 .map((a: any) => a.perfiles?.email)
-                .filter((email: string) => email) 
                 .join(','); 
         }
 
-        // 👇 NUEVA LÓGICA: Si no hay gestores con correo, cancelamos el envío 👇
+        // 4. Si no hay gestores con correo (o todos las tienen apagadas), cancelamos el envío
         if (!correosDestino) {
-            console.warn(`El hospital ${nombreHospital} no tiene gestores con email asignados. Se cancela la alerta.`);
+            console.warn(`El hospital ${nombreHospital} no tiene gestores con notificaciones activas. Se cancela la alerta.`);
             return; // Salimos de la función sin gastar cuota de EmailJS
         }
 
-        // 4. Preparamos los datos
+        // 5. Preparamos los datos
         const datosAlerta = {
             hospital: nombreHospital,
             planta: planta,
