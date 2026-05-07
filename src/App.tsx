@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { Toaster } from "sonner"; // 👈 Importamos el componente de Toasts
 
 // Guardias
 import { ProtectedRoute } from "./router/ProtectedRoute";
@@ -36,6 +37,9 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* 🚀 Añadimos el Toaster aquí para que esté disponible en toda la app */}
+      <Toaster position="top-right" richColors closeButton /> 
+      
       <BotonFlotante />
 
       <Routes>
@@ -47,7 +51,6 @@ function App() {
           <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
         </Route>
 
-        {/* Esta ruta no tiene PublicRoute porque el usuario ya vuelve autenticado desde el correo */}
         <Route path="/recuperar-password/confirmar" element={<ActualizarPasswordPage />} />
 
         {/* ZONA PRIVADA */}

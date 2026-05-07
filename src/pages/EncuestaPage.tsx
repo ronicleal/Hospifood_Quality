@@ -8,8 +8,6 @@ import { EncuestaFormulario } from "../components/encuesta/EncuestaFormulario";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { notificarTemperaturaBaja } from "../utils/notificaciones";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
-import { Button } from "../components/ui/button"; // 👈 Asegúrate de importar el Button
-import { RotateCcw } from "lucide-react"; // 👈 Un icono chulo para el botón de reiniciar
 
 export const EncuestaPage = () => {
     const [pantalla, setPantalla] = useState<"bienvenida" | "preguntas">("bienvenida");
@@ -20,6 +18,9 @@ export const EncuestaPage = () => {
     const [loading, setLoading] = useState(true);
     const [enviando, setEnviando] = useState(false);
     const [encuestaCompletada, setEncuestaCompletada] = useState(false);
+    
+    // 👇 Nuevo estado para controlar si el paciente ya votó recientemente
+    const [yaVoto, setYaVoto] = useState(false);
 
     const [modalAlerta, setModalAlerta] = useState<{isOpen: boolean; title: string; message: string; type: 'warning' | 'error'}>({ 
         isOpen: false, title: "", message: "", type: "warning" 
@@ -31,54 +32,44 @@ export const EncuestaPage = () => {
 
     const hospitalIdUrl = new URLSearchParams(window.location.search).get('h') || '1';
 
+    // 👇 EFECTO DE BLOQUEO POR LOCALSTORAGE 👇
     useEffect(() => {
-        async function inicializarEncuesta() {
-            const hospitalActivo = parseInt(hospitalIdUrl);
-            const [preguntasRes, turnosRes] = await Promise.all([
-                supabase.from('parametros').select('*').eq('activo', true).eq('hospital_id', hospitalActivo).order('id', { ascending: true }),
-                supabase.from('turnos').select('*').eq('activo', true).eq('hospital_id', hospitalActivo).order('id', { ascending: true })
-            ]);
-
-            if (preguntasRes.error || turnosRes.error) {
-                console.error("❌ Error Supabase:", preguntasRes.error?.message || turnosRes.error?.message);
-            } else {
-                setPreguntasDB(preguntasRes.data || []);
-                setTurnosDB(turnosRes.data || []);
-                const respuestasIniciales = (preguntasRes.data || []).map(p => ({ parametro_id: p.id, valor: null }));
-                setDatosEncuesta(prev => ({ ...prev, respuestas: respuestasIniciales }));
+        const ultimaVotacion = localStorage.getItem('hospifood_ultima_encuesta');
+        if (ultimaVotacion) {
+            const tiempoPasadoMs = new Date().getTime() - new Date(ultimaVotacion).getTime();
+            const horasPasadas = tiempoPasadoMs / (1000 * 60 * 60);
+            
+            // Si han pasado menos de 4 horas, activamos el bloqueo
+            if (horasPasadas < 4) {
+                setYaVoto(true);
+                setLoading(false); // Quitamos el loading porque no necesitamos cargar las preguntas
+                return;
             }
-            setLoading(false);
         }
+        // Si no ha votado o han pasado más de 4h, inicializamos la encuesta
         inicializarEncuesta();
     }, [hospitalIdUrl]);
 
+    async function inicializarEncuesta() {
+        const hospitalActivo = parseInt(hospitalIdUrl);
+        const [preguntasRes, turnosRes] = await Promise.all([
+            supabase.from('parametros').select('*').eq('activo', true).eq('hospital_id', hospitalActivo).order('id', { ascending: true }),
+            supabase.from('turnos').select('*').eq('activo', true).eq('hospital_id', hospitalActivo).order('id', { ascending: true })
+        ]);
+
+        if (preguntasRes.error || turnosRes.error) {
+            console.error("❌ Error Supabase:", preguntasRes.error?.message || turnosRes.error?.message);
+        } else {
+            setPreguntasDB(preguntasRes.data || []);
+            setTurnosDB(turnosRes.data || []);
+            const respuestasIniciales = (preguntasRes.data || []).map(p => ({ parametro_id: p.id, valor: null }));
+            setDatosEncuesta(prev => ({ ...prev, respuestas: respuestasIniciales }));
+        }
+        setLoading(false);
+    }
+
     const totalPreguntas = preguntasDB.length;
     const totalPasos = totalPreguntas + 1;
-
-    // 👇 NUEVA FUNCIÓN: Resetea todos los estados al punto de partida 👇
-    const reiniciarEncuesta = () => {
-        setEncuestaCompletada(false);
-        setPantalla("bienvenida");
-        setPasoActual(1);
-        setDatosEncuesta({
-            planta: '', 
-            turno: '' as any, 
-            sugerencia: '', 
-            respuestas: preguntasDB.map(p => ({ parametro_id: p.id, valor: null }))
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    // 👇 NUEVO EFECTO: Temporizador de auto-reinicio tras 5 segundos 👇
-    useEffect(() => {
-        let timeout: ReturnType<typeof setTimeout>;
-        if (encuestaCompletada) {
-            timeout = setTimeout(() => {
-                reiniciarEncuesta();
-            }, 6000); // 6 segundos de espera antes de volver al inicio
-        }
-        return () => clearTimeout(timeout);
-    }, [encuestaCompletada]);
 
     const handleComenzar = () => {
         if (!datosEncuesta.planta || !datosEncuesta.turno) {
@@ -152,6 +143,9 @@ export const EncuestaPage = () => {
                 }
             }
 
+            // 👇 Guardamos la marca de tiempo en el navegador al terminar con éxito
+            localStorage.setItem('hospifood_ultima_encuesta', new Date().toISOString());
+            
             setEncuestaCompletada(true);
         } catch (error: any) {
             setModalAlerta({
@@ -168,11 +162,30 @@ export const EncuestaPage = () => {
     // --- VISTAS GLOBALES ---
     if (loading) return <div className="min-h-screen flex items-center justify-center text-primary font-bold animate-pulse">Cargando encuesta...</div>;
 
-    // 👇 PANTALLA FINAL ACTUALIZADA 👇
+    // 👇 VISTA SI YA HA VOTADO RECIENTEMENTE 👇
+    if (yaVoto) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center animate-fade-in relative overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="z-10 flex flex-col items-center">
+                    <div className="w-24 h-24 bg-blue-100/80 text-blue-600 rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border border-blue-200">
+                        ℹ️
+                    </div>
+                    <h2 className="text-3xl font-extrabold text-foreground mb-4">¡Ya hemos recibido tu opinión!</h2>
+                    <p className="text-lg text-muted-foreground max-w-md mb-8">
+                        Para garantizar la calidad de los datos, solo permitimos una encuesta por turno de comida. Podrás volver a valorar en la próxima comida.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // 👇 PANTALLA FINAL ACTUALIZADA Y LIMPIA 👇
     if (encuestaCompletada) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center animate-fade-in relative overflow-hidden">
-                {/* Opcional: El mismo fondo sutil de la bienvenida */}
                 <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -184,12 +197,8 @@ export const EncuestaPage = () => {
                     <p className="text-lg text-muted-foreground max-w-md mb-8">
                         Muchas gracias por ayudarnos a mejorar el servicio de alimentación del hospital.
                     </p>
-
-                    <Button onClick={reiniciarEncuesta} variant="outline" className="gap-2 border-border text-foreground hover:bg-muted">
-                        <RotateCcw size={18} /> Volver al inicio
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-4 animate-pulse">
-                        Reiniciando automáticamente en unos segundos...
+                    <p className="text-sm font-semibold text-muted-foreground mt-4 px-4 py-2 bg-muted rounded-full">
+                        Ya puedes salir de la encuesta
                     </p>
                 </div>
             </div>

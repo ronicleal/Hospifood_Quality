@@ -6,10 +6,11 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
 import { Switch } from "../../components/ui/Switch"; 
-import { Save, ShieldCheck, Mail, User, Clock, Bell, BellOff, Building2 } from "lucide-react";
+import { Save, ShieldCheck, Mail, User, Clock, Bell, BellOff, Building2, AlertCircle } from "lucide-react";
 import { isPasswordValid } from "../../utils/regex";
 import { PasswordSegura } from "../../components/ui/PasswordSegura";
 import { supabase } from "../../database/supabase/Client";
+import { toast } from "sonner"; // 👈 Importamos toast 
 
 export const PerfilPage = () => {
     const { profile, session, updateAvatar, updateNotificaciones, isAdmin } = useAuthStore();
@@ -17,14 +18,13 @@ export const PerfilPage = () => {
 
     const [avatar, setAvatar] = useState(profile?.avatar_url || "/src/avatars/avatar1.jpg");
     const [newPass, setNewPass] = useState("");
+    const [confirmPass, setConfirmPass] = useState(""); 
     const [notificaciones, setNotificaciones] = useState(profile?.notificaciones_activas ?? true);
     
-    // 👇 Ahora guardamos un array de nombres en lugar de un string único
     const [hospitalesAsignados, setHospitalesAsignados] = useState<string[]>([]);
-    const [loadingHospitales, setLoadingHospitales] = useState(true); // Para mostrar "Cargando..."
+    const [loadingHospitales, setLoadingHospitales] = useState(true);
 
     const [loading, setLoading] = useState(false);
-    const [msg, setMsg] = useState({ text: "", type: "" });
 
     useEffect(() => {
         if (profile?.notificaciones_activas !== undefined) {
@@ -32,7 +32,6 @@ export const PerfilPage = () => {
         }
     }, [profile]);
 
-    // Buscar nombres de hospitales
     useEffect(() => {
         const fetchHospitales = async () => {
             if (isAdmin) {
@@ -52,7 +51,6 @@ export const PerfilPage = () => {
                 .in('id', profile.hospitales);
             
             if (data && data.length > 0) {
-                // Guardamos el array directamente
                 setHospitalesAsignados(data.map(h => h.nombre));
             }
             setLoadingHospitales(false);
@@ -63,8 +61,14 @@ export const PerfilPage = () => {
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validación de coincidencia de contraseña
+        if (newPass && newPass !== confirmPass) {
+            toast.error("Las nuevas contraseñas no coinciden."); // 👈 Toast de error 
+            return;
+        }
+
         setLoading(true);
-        setMsg({ text: "", type: "" });
 
         const updateData: any = { password: newPass || undefined };
         
@@ -76,10 +80,11 @@ export const PerfilPage = () => {
         const { error } = await userRepo.updateProfile(profile!.id, updateData);
 
         if (error) {
-            setMsg({ text: "Error al actualizar. Inténtalo de nuevo.", type: "error" });
+            toast.error("Error al actualizar. Inténtalo de nuevo."); // 👈 Toast de error 
         } else {
-            setMsg({ text: "Perfil actualizado correctamente.", type: "success" });
+            toast.success("Perfil actualizado correctamente."); // 👈 Toast de éxito 
             setNewPass(""); 
+            setConfirmPass(""); 
             if (!isAdmin) {
                 updateAvatar(avatar); 
                 if (updateNotificaciones) updateNotificaciones(notificaciones);
@@ -88,7 +93,7 @@ export const PerfilPage = () => {
         setLoading(false);
     };
 
-    const isFormInvalid = newPass.length > 0 && !isPasswordValid(newPass);
+    const isFormInvalid = newPass.length > 0 && (!isPasswordValid(newPass) || newPass !== confirmPass);
 
     const formatFecha = (isoString?: string) => {
         if (!isoString) return "No hay registro reciente";
@@ -125,7 +130,6 @@ export const PerfilPage = () => {
                         <Input value={session?.user.email || ""} disabled className="bg-muted cursor-not-allowed font-medium text-foreground" />
                     </div>
                     
-                    {/* 👇 LISTA DE HOSPITALES CON ESTILO DE ETIQUETAS (BADGES) 👇 */}
                     {!isAdmin && (
                         <div className="space-y-2">
                             <Label className="flex items-center gap-2"><Building2 size={16} className="text-muted-foreground"/> Centros Asignados</Label>
@@ -176,19 +180,31 @@ export const PerfilPage = () => {
                     <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-foreground">
                         <ShieldCheck className="text-primary" size={20}/> Seguridad
                     </h3>
-                    <div className="space-y-2 max-w-sm">
-                        <Label htmlFor="pass">Nueva Contraseña (opcional)</Label>
-                        <Input id="pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="pass">Nueva Contraseña (opcional)</Label>
+                            <Input id="pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
+                            {newPass.length > 0 && <PasswordSegura password={newPass} />}
+                        </div>
                         
-                        {newPass.length > 0 && <PasswordSegura password={newPass} />}
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-pass">Confirmar Contraseña</Label>
+                            <Input 
+                                id="confirm-pass" 
+                                type="password" 
+                                value={confirmPass} 
+                                onChange={(e) => setConfirmPass(e.target.value)} 
+                                placeholder="Repite la nueva contraseña"
+                                disabled={newPass.length === 0}
+                            />
+                            {confirmPass.length > 0 && newPass !== confirmPass && (
+                                <span className="text-xs text-red-500 font-bold flex items-center gap-1 animate-fade-in">
+                                    <AlertCircle size={14} /> Las contraseñas no coinciden
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
-
-                {msg.text && (
-                    <div className={`p-4 rounded-lg text-sm font-bold text-center ${msg.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {msg.text}
-                    </div>
-                )}
 
                 <div className="flex justify-end pt-4">
                     <Button type="submit" disabled={loading || isFormInvalid} className="gap-2 px-8 h-12 text-md">

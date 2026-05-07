@@ -42,17 +42,17 @@ export const HospitalesForm = (props: Props) => {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="provincia">Provincia</Label>
-                        <Input id="provincia" placeholder="Ej: Cáceres" value={props.provincia} onChange={(e) => props.setProvincia(e.target.value)} disabled={props.loading} />
+                        <Input id="provincia" placeholder="Ej: Cáceres" value={props.provincia} onChange={(e) => props.setProvincia(e.target.value)} disabled={props.loading} required />
                     </div>
                     <div className="space-y-2 lg:col-span-4">
                         <Label htmlFor="area">Área de Salud</Label>
-                        <Input id="area" placeholder="Ej: Área de Salud de Coria" value={props.areaSalud} onChange={(e) => props.setAreaSalud(e.target.value)} disabled={props.loading} />
+                        <Input id="area" placeholder="Ej: Área de Salud de Coria" value={props.areaSalud} onChange={(e) => props.setAreaSalud(e.target.value)} disabled={props.loading} required />
                     </div>
                 </div>
                 <div className="flex justify-end pt-2">
                     <Button
                         type="submit"
-                        disabled={props.loading || !props.nombre || !props.codigoCentro}
+                        disabled={props.loading || !props.nombre || !props.codigoCentro || !props.provincia || !props.areaSalud}
                         className={`gap-2 w-full sm:w-auto ${props.isEditing
                                 ? 'bg-primary/90 hover:bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20'
                                 : ''
