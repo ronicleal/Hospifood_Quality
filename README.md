@@ -103,6 +103,20 @@ Toda la documentación detallada sobre el avance semanal se encuentra en el repo
 | **19-diciembre** | Pruebas de Despliegue en Entorno Local. |
 | **09-enero** | Pruebas de Despliegue en Producción (Vercel). |
 | **16-enero** | Fase de pruebas (Testing) y corrección de errores (Bugs).|
-| **23-enero** | Revisión final de documentación y ajustes de accesibilidad. |
-| **30-enero** | Preparación para la presentación y defensa del TFG. |
+| **23-enero** | Congelación de Código (Code Freeze) y Versionado Semántico. |
+| **30-enero** | Orientaciones de material visual para la defensa. |
+| **06 febrero** | Implementación de Feedback y Accesibilidad Web (WCAG). |
+| **13 febrero** | Optimización de Base de Datos y Revisión de Ciberseguridad. |
+| **20 febrero** | Generación de Datos Simulados (Mock Data) y Pruebas de Estrés.|
+| **27 febrero** | Cierre de Documentación y Manual de Despliegue.|
+| **05 marzo** | Revisión final de documentación y ajustes de accesibilidad.|
+| **12 marzo** | Preparación para la presentación y defensa.|
+| **04 mayo** | Reunión para orientaciones generales de la presentación y defensa.|
+| **09 mayo** | Despliegue del proyecto en Vercel.|
+| **25 mayo** | Invitación de los miembros del tribunal al proyecto.|
+| **18 mayo** | Entrega del proyecto e invitación al tribunal.|
+| **01 junio** | Defensa del proyecto.|
+
+
+
 
