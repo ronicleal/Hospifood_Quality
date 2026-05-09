@@ -23,7 +23,7 @@ export const LoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [nombre, setNombre] = useState("");
     const [apellidos, setApellidos] = useState("");
-    const [avatarUrl, setAvatarUrl] = useState("/src/avatars/avatar1.jpg");
+    const [avatarUrl, setAvatarUrl] = useState("/avatars/avatar1.jpg");
     const [loading, setLoading] = useState(false);
 
     const [modal, setModal] = useState<{
