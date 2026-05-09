@@ -47,9 +47,9 @@ export const notificarTemperaturaBaja = async (hospitalId: number, planta: strin
         console.log("Enviando alerta a EmailJS a:", correosDestino);
 
         // Envío Real
-        const SERVICE_ID = "service_sabo058";    
-        const TEMPLATE_ID = "template_to5ov4i";  
-        const PUBLIC_KEY = "r9MSXIp7iFU-pQEDF";    
+        const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;    
+        const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;  
+        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;  
 
         const response = await emailjs.send(
             SERVICE_ID,
@@ -59,7 +59,7 @@ export const notificarTemperaturaBaja = async (hospitalId: number, planta: strin
         );
 
         console.log("¡Alerta enviada correctamente! Status:", response.status);
-
+hospital
     } catch (error) {
         console.error("Error al intentar notificar la bajada de temperatura:", error);
     }
