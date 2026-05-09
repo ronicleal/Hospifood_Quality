@@ -1,11 +1,11 @@
 // Ponemos las rutas de las imágenes que vas a guardar en public/assets/avatars/
 const AVATARES_PREDEFINIDOS = [
-    "/src/avatars/avatar1.jpg",
-    "/src/avatars/avatar2.jpg",
-    "/src/avatars/avatar3.jpg",
-    "/src/avatars/avatar4.jpg",
-    "/src/avatars/avatar5.jpg",
-    "/src/avatars/avatar6.jpg",
+    "/avatars/avatar1.jpg",
+    "/avatars/avatar2.jpg",
+    "/avatars/avatar3.jpg",
+    "/avatars/avatar4.jpg",
+    "/avatars/avatar5.jpg",
+    "/avatars/avatar6.jpg",
 ];
 
 interface Props {

@@ -66,7 +66,7 @@ export const PanelLayout = () => {
                                     {isAdmin ? (
                                         <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold border-2 border-purple-500 text-xs">AD</div>
                                     ) : (
-                                        <img src={profile?.avatar_url || "/src/avatars/avatar1.jpg"} className="w-8 h-8 rounded-full border-2 border-primary object-cover" alt="Mi Perfil" />
+                                        <img src={profile?.avatar_url || "/avatars/avatar1.jpg"} className="w-8 h-8 rounded-full border-2 border-primary object-cover" alt="Mi Perfil" />
                                     )}
                                 </Link>
                                 <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
@@ -132,7 +132,7 @@ export const PanelLayout = () => {
                                     </div>
                                 ) : (
                                     <img 
-                                        src={profile?.avatar_url || "/src/avatars/avatar1.jpg"} 
+                                        src={profile?.avatar_url || "/avatars/avatar1.jpg"} 
                                         className="w-9 h-9 rounded-full border-2 border-primary group-hover:scale-110 transition-transform bg-background shadow-sm object-cover" 
                                         alt="Mi Perfil" 
                                     />

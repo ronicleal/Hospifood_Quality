@@ -16,7 +16,7 @@ export const PerfilPage = () => {
     const { profile, session, updateAvatar, updateNotificaciones, isAdmin } = useAuthStore();
     const userRepo = createUserRepository();
 
-    const [avatar, setAvatar] = useState(profile?.avatar_url || "/src/avatars/avatar1.jpg");
+    const [avatar, setAvatar] = useState(profile?.avatar_url || "/avatars/avatar1.jpg");
     const [newPass, setNewPass] = useState("");
     const [confirmPass, setConfirmPass] = useState(""); 
     const [notificaciones, setNotificaciones] = useState(profile?.notificaciones_activas ?? true);
