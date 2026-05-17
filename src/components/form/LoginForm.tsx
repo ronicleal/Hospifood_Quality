@@ -20,7 +20,11 @@ export const LoginForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    
+    // 👇 Estados para la visibilidad de ambas contraseñas 👇
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
+    
     const [nombre, setNombre] = useState("");
     const [apellidos, setApellidos] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("/avatars/avatar1.jpg");
@@ -174,9 +178,29 @@ export const LoginForm = () => {
                         {!isLogin && (
                             <div className="space-y-2 animate-fade-in">
                                 <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                                <Input id="confirmPassword" type="password" className="h-11" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={loading} required placeholder="Repite tu contraseña" />
+                                {/* 👇 Aquí está el input actualizado con el ojo 👇 */}
+                                <div className="relative">
+                                    <Input 
+                                        id="confirmPassword" 
+                                        type={showConfirmPassword ? "text" : "password"} 
+                                        className="pr-10 h-11" 
+                                        value={confirmPassword} 
+                                        onChange={(e) => setConfirmPassword(e.target.value)} 
+                                        disabled={loading} 
+                                        required 
+                                        placeholder="Repite tu contraseña" 
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                                        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                
                                 {confirmPassword.length > 0 && password !== confirmPassword && (
-                                    <span className="text-[10px] text-red-500 font-bold tracking-widest flex items-center gap-1"><AlertCircle size={12} /> Las contraseñas no coinciden</span>
+                                    <span className="text-[10px] text-red-500 font-bold tracking-widest flex items-center gap-1 mt-1"><AlertCircle size={12} /> Las contraseñas no coinciden</span>
                                 )}
                             </div>
                         )}
@@ -191,7 +215,13 @@ export const LoginForm = () => {
             <div className="mt-10 border-t border-border pt-8 text-center space-y-4">
                 <button 
                     type="button" 
-                    onClick={() => { setIsLogin(!isLogin); setPassword(""); setConfirmPassword(""); }}
+                    onClick={() => { 
+                        setIsLogin(!isLogin); 
+                        setPassword(""); 
+                        setConfirmPassword(""); 
+                        setShowPassword(false); 
+                        setShowConfirmPassword(false); // Reseteamos la visibilidad al cambiar de vista
+                    }}
                     className="text-sm font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-2 mx-auto"
                 >
                     {isLogin ? "¿Eres un Responsable nuevo? Regístrate" : "¿Ya tienes una cuenta? Accede"}

@@ -6,11 +6,11 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { AvatarSelector } from "../../components/ui/AvatarSelector";
 import { Switch } from "../../components/ui/Switch"; 
-import { Save, ShieldCheck, Mail, User, Clock, Bell, BellOff, Building2, AlertCircle } from "lucide-react";
+import { Save, ShieldCheck, Mail, User, Clock, Bell, BellOff, Building2, AlertCircle, Eye, EyeOff } from "lucide-react"; // 👈 Importados Eye y EyeOff
 import { isPasswordValid } from "../../utils/regex";
 import { PasswordSegura } from "../../components/ui/PasswordSegura";
 import { supabase } from "../../database/supabase/Client";
-import { toast } from "sonner"; // 👈 Importamos toast 
+import { toast } from "sonner";
 
 export const PerfilPage = () => {
     const { profile, session, updateAvatar, updateNotificaciones, isAdmin, updateNombre } = useAuthStore();
@@ -20,6 +20,11 @@ export const PerfilPage = () => {
     const [avatar, setAvatar] = useState(profile?.avatar_url || "/avatars/avatar1.jpg");
     const [newPass, setNewPass] = useState("");
     const [confirmPass, setConfirmPass] = useState(""); 
+    
+    // 👇 Añadimos estados para la visibilidad de las contraseñas
+    const [showNewPass, setShowNewPass] = useState(false);
+    const [showConfirmPass, setShowConfirmPass] = useState(false);
+
     const [notificaciones, setNotificaciones] = useState(profile?.notificaciones_activas ?? true);
     
     const [hospitalesAsignados, setHospitalesAsignados] = useState<string[]>([]);
@@ -66,15 +71,13 @@ export const PerfilPage = () => {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Verificamos que no deje el nombre en blanco
         if (!nombre.trim()) {
             toast.error("El nombre no puede estar vacío.");
             return;
         }
 
-        // Validación de coincidencia de contraseña
         if (newPass && newPass !== confirmPass) {
-            toast.error("Las nuevas contraseñas no coinciden."); // 👈 Toast de error 
+            toast.error("Las nuevas contraseñas no coinciden."); 
             return;
         }
 
@@ -93,9 +96,9 @@ export const PerfilPage = () => {
         const { error } = await userRepo.updateProfile(profile!.id, updateData);
 
         if (error) {
-            toast.error("Error al actualizar. Inténtalo de nuevo."); // 👈 Toast de error 
+            toast.error("Error al actualizar. Inténtalo de nuevo.");
         } else {
-            toast.success("Perfil actualizado correctamente."); // 👈 Toast de éxito 
+            toast.success("Perfil actualizado correctamente.");
             setNewPass(""); 
             setConfirmPass("");
             updateNombre(nombre.trim()); 
@@ -195,24 +198,50 @@ export const PerfilPage = () => {
                         <ShieldCheck className="text-primary" size={20}/> Seguridad
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* 👇 Input Nueva Contraseña con Ojo 👇 */}
                         <div className="space-y-2">
                             <Label htmlFor="pass">Nueva Contraseña (opcional)</Label>
-                            <Input id="pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
+                            <div className="relative">
+                                <Input 
+                                    id="pass" 
+                                    type={showNewPass ? "text" : "password"} 
+                                    value={newPass} 
+                                    onChange={(e) => setNewPass(e.target.value)} 
+                                    placeholder="Dejar en blanco para no cambiar" 
+                                    className="pr-10"
+                                />
+                                <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors">
+                                    {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                             {newPass.length > 0 && <PasswordSegura password={newPass} />}
                         </div>
                         
+                        {/* 👇 Input Confirmar Contraseña con Ojo 👇 */}
                         <div className="space-y-2">
                             <Label htmlFor="confirm-pass">Confirmar Contraseña</Label>
-                            <Input 
-                                id="confirm-pass" 
-                                type="password" 
-                                value={confirmPass} 
-                                onChange={(e) => setConfirmPass(e.target.value)} 
-                                placeholder="Repite la nueva contraseña"
-                                disabled={newPass.length === 0}
-                            />
+                            <div className="relative">
+                                <Input 
+                                    id="confirm-pass" 
+                                    type={showConfirmPass ? "text" : "password"} 
+                                    value={confirmPass} 
+                                    onChange={(e) => setConfirmPass(e.target.value)} 
+                                    placeholder="Repite la nueva contraseña"
+                                    disabled={newPass.length === 0}
+                                    className="pr-10"
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowConfirmPass(!showConfirmPass)} 
+                                    disabled={newPass.length === 0}
+                                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                                >
+                                    {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            
                             {confirmPass.length > 0 && newPass !== confirmPass && (
-                                <span className="text-xs text-red-500 font-bold flex items-center gap-1 animate-fade-in">
+                                <span className="text-xs text-red-500 font-bold flex items-center gap-1 animate-fade-in mt-1">
                                     <AlertCircle size={14} /> Las contraseñas no coinciden
                                 </span>
                             )}
