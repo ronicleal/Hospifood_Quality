@@ -6,6 +6,7 @@ import {
 
 import { useAuthStore } from "../store/authStore";
 import { createUserRepository } from "../database/repositories";
+import { ThemeToggle } from "../components/ui/ThemeToggle"; // 👈 IMPORTACIÓN AÑADIDA
 
 export const PanelLayout = () => {
     const location = useLocation();
@@ -38,13 +39,13 @@ export const PanelLayout = () => {
     return (
         <div className="min-h-screen bg-background font-sans relative">
             
-            {/* FONDOS DEGRADADOS FIJOS */}
+            {/* 👇 FONDOS DEGRADADOS FIJOS 👇 */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
             </div>
 
-            {/* Cabecera con efecto cristal */}
+            {/* 👇 Cabecera con efecto cristal (bg-card/95 y backdrop-blur-sm) 👇 */}
             <header className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* 👇 Modificado: flex-col en móvil, flex-row en desktop */}
@@ -62,6 +63,8 @@ export const PanelLayout = () => {
 
                             {/* 👇 PERFIL Y LOGOUT (SOLO MÓVIL) 👇 */}
                             <div className="flex md:hidden items-center gap-3">
+                                <ThemeToggle /> {/* 👈 BOTÓN DE TEMA EN MÓVIL */}
+                                
                                 <Link to="/panel/perfil" className="hover:bg-muted/50 p-1 rounded-full transition-colors">
                                     {isAdmin ? (
                                         <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold border-2 border-purple-500 text-xs">AD</div>
@@ -125,6 +128,10 @@ export const PanelLayout = () => {
 
                         {/* 👇 PERFIL Y LOGOUT (SOLO ESCRITORIO) 👇 */}
                         <div className="hidden md:flex items-center gap-4 relative z-10">
+                            
+                            <ThemeToggle /> {/* 👈 BOTÓN DE TEMA EN ESCRITORIO */}
+                            <div className="w-px h-6 bg-border mx-1" /> {/* 👈 Separador estético */}
+
                             <Link to="/panel/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-1 pr-3 rounded-full transition-colors group cursor-pointer" title="Ir a mi perfil">
                                 {isAdmin ? (
                                     <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold border-2 border-purple-500 group-hover:scale-110 transition-transform shadow-sm">
