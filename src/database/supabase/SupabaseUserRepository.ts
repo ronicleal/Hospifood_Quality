@@ -68,7 +68,7 @@ export class SupabaseUserRepository implements UserRepository {
 
   async updateProfile(
     userId: string,
-    { avatarUrl, password, notificaciones_activas }: { avatarUrl?: string; password?: string; notificaciones_activas?: boolean }
+    { nombre_completo, avatarUrl, password, notificaciones_activas }: { nombre_completo?: string; avatarUrl?: string; password?: string; notificaciones_activas?: boolean }
   ) {
     // 1. Actualización de contraseña en Supabase Auth
     if (password) {
@@ -79,6 +79,10 @@ export class SupabaseUserRepository implements UserRepository {
     // 2. Preparar el objeto de actualización para la tabla 'perfiles'
     // Usamos un objeto dinámico para actualizar solo lo que se haya enviado
     const updates: any = {};
+
+    if (nombre_completo !== undefined) {
+      updates.nombre_completo = nombre_completo;
+    }
 
     if (avatarUrl !== undefined) {
       updates.avatar_url = avatarUrl;

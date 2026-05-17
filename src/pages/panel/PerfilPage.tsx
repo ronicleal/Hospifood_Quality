@@ -13,9 +13,10 @@ import { supabase } from "../../database/supabase/Client";
 import { toast } from "sonner"; // 👈 Importamos toast 
 
 export const PerfilPage = () => {
-    const { profile, session, updateAvatar, updateNotificaciones, isAdmin } = useAuthStore();
+    const { profile, session, updateAvatar, updateNotificaciones, isAdmin, updateNombre } = useAuthStore();
     const userRepo = createUserRepository();
 
+    const [nombre, setNombre] = useState(profile?.nombre_completo || "");
     const [avatar, setAvatar] = useState(profile?.avatar_url || "/avatars/avatar1.jpg");
     const [newPass, setNewPass] = useState("");
     const [confirmPass, setConfirmPass] = useState(""); 
@@ -27,8 +28,11 @@ export const PerfilPage = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (profile?.notificaciones_activas !== undefined) {
-            setNotificaciones(profile.notificaciones_activas);
+        if (profile) {
+            if (!nombre) setNombre(profile.nombre_completo || "");
+            if (profile.notificaciones_activas !== undefined) {
+                setNotificaciones(profile.notificaciones_activas);
+            }
         }
     }, [profile]);
 
@@ -62,6 +66,12 @@ export const PerfilPage = () => {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Verificamos que no deje el nombre en blanco
+        if (!nombre.trim()) {
+            toast.error("El nombre no puede estar vacío.");
+            return;
+        }
+
         // Validación de coincidencia de contraseña
         if (newPass && newPass !== confirmPass) {
             toast.error("Las nuevas contraseñas no coinciden."); // 👈 Toast de error 
@@ -70,7 +80,10 @@ export const PerfilPage = () => {
 
         setLoading(true);
 
-        const updateData: any = { password: newPass || undefined };
+        const updateData: any = { 
+            nombre_completo: nombre.trim(),
+            password: newPass || undefined 
+        };
         
         if (!isAdmin) {
             updateData.avatarUrl = avatar;
@@ -84,7 +97,8 @@ export const PerfilPage = () => {
         } else {
             toast.success("Perfil actualizado correctamente."); // 👈 Toast de éxito 
             setNewPass(""); 
-            setConfirmPass(""); 
+            setConfirmPass("");
+            updateNombre(nombre.trim()); 
             if (!isAdmin) {
                 updateAvatar(avatar); 
                 if (updateNotificaciones) updateNotificaciones(notificaciones);
@@ -93,7 +107,7 @@ export const PerfilPage = () => {
         setLoading(false);
     };
 
-    const isFormInvalid = newPass.length > 0 && (!isPasswordValid(newPass) || newPass !== confirmPass);
+    const isFormInvalid = !nombre.trim() || (newPass.length > 0 && (!isPasswordValid(newPass) || newPass !== confirmPass));
 
     const formatFecha = (isoString?: string) => {
         if (!isoString) return "No hay registro reciente";
@@ -123,7 +137,7 @@ export const PerfilPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8 border-b border-border">
                     <div className="space-y-2">
                         <Label className="flex items-center gap-2"><User size={16} className="text-muted-foreground"/> Nombre Completo</Label>
-                        <Input value={profile?.nombre_completo || ""} disabled className="bg-muted cursor-not-allowed font-medium text-foreground" />
+                        <Input value={nombre} onChange={e => setNombre(e.target.value)} className="font-medium text-foreground bg-background"   />
                     </div>
                     <div className="space-y-2">
                         <Label className="flex items-center gap-2"><Mail size={16} className="text-muted-foreground"/> Email Corporativo</Label>

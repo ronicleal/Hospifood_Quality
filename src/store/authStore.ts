@@ -14,6 +14,7 @@ interface AuthState {
     initialize: () => Promise<void>;
     updateAvatar: (newUrl: string) => void;
     updateNotificaciones: (activas: boolean) => void;
+    updateNombre: (nombre: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -92,6 +93,10 @@ export const useAuthStore = create<AuthState>()(
 
             updateNotificaciones: (activas: boolean) => set((state) => ({
                 profile: state.profile ? { ...state.profile, notificaciones_activas: activas } : null
+            })),
+
+            updateNombre: (nombre: string) => set((state) => ({
+                profile: state.profile ? { ...state.profile, nombre_completo: nombre } : null
             })),
             
         }),
