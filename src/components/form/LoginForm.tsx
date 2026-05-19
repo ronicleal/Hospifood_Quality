@@ -140,7 +140,7 @@ export const LoginForm = () => {
                             <Label htmlFor="email">Email Corporativo</Label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-3 text-muted-foreground" size={18} />
-                                <Input id="email" type="email" className="pl-10 h-11" placeholder="responsable@salud-juntaex.es" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} required />
+                                <Input id="email" type="email" className="pl-10 h-11" placeholder="responsable_calidad@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} required />
                             </div>
                             {email.length > 0 && (
                                 <div className="mt-1 flex items-center gap-2">
