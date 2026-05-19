@@ -37,10 +37,10 @@ export const EncuestaPage = () => {
         const ultimaVotacion = localStorage.getItem('hospifood_ultima_encuesta');
         if (ultimaVotacion) {
             const tiempoPasadoMs = new Date().getTime() - new Date(ultimaVotacion).getTime();
-            const horasPasadas = tiempoPasadoMs / (0);
+            const horasPasadas = tiempoPasadoMs / (1000 * 60 * 60);
             
             // Si han pasado menos de 4 horas, activamos el bloqueo
-            if (horasPasadas < 0) {
+            if (horasPasadas < 4) {
                 setYaVoto(true);
                 setLoading(false); // Quitamos el loading porque no necesitamos cargar las preguntas
                 return;
