@@ -49,7 +49,7 @@ La base de datos PostgreSQL está optimizada para soportar una estructura multi-
 | :--- | :--- | :--- |
 | **Paciente** | Público (Anónimo) | Acceso vía código QR o tablet en bandeja de comida. Completa encuestas con escala visual de emojis sin necesidad de credenciales. |
 | **Gestor de Calidad** | Privado (Autenticado) | Acceso restringido por RLS a sus centros asignados. Monitorea métricas en tiempo real, interactúa con el Chatbot de IA, gestiona parámetros locales, recibe alertas EmailJS y exporta PDFs. |
-| **Administrador SES** | Superusuario (Autenticado) | Acceso global. Visualización consolidada de la red hospitalaria regional, administración de cuentas de usuario y control del CRUD de centros sanitarios. |
+| **Administrador** | Superusuario (Autenticado) | Acceso global. Visualización consolidada de la red hospitalaria regional, administración de cuentas de usuario y control del CRUD de centros sanitarios. |
 
 ## 🖥️ Estructura de Vistas del Sistema
 * **Vistas del Paciente:** `Inicio Encuesta` (pantalla limpia de bienvenida) y `Cuestionario Táctil` (flujo guiado por tarjetas).
