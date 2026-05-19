@@ -5,85 +5,94 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=3ECF8E)
 
-**Hospifood Quality** es una aplicación web desarrollada para digitalizar el proceso de recogida y análisis de la satisfacción de los pacientes con respecto al servicio de alimentación en los hospitales públicos de Extremadura. Basado en el método normalizado **COCINHEX**, este sistema sustituye las encuestas en papel por una interfaz digital táctil para los pacientes y proporciona un cuadro de mando en tiempo real para los Responsables de Calidad.
+**Hospifood Quality** es una plataforma web inteligente de nivel empresarial diseñada para la digitalización, control y análisis en tiempo real de la calidad alimentaria en la red de hospitales públicos de Extremadura. Basado en el método normalizado **COCINHEX**, este ecosistema sustituye las encuestas en papel por una interfaz digital táctil para los pacientes y proporciona una potente herramienta analítica asistida por IA para los Responsables de Calidad y la Dirección del SES.
+
+## 🚀 Enlace de Producción
+La aplicación se encuentra desplegada y accesible públicamente en: **[hospifood-quality.vercel.app](https://hospifood-quality.vercel.app/)**
 
 ## ✨ Características Principales
-* **📱 Encuestas Táctiles (Anónimas):** Interfaz adaptada con diseño "Fat Finger" (botones grandes) para facilitar la interacción de los pacientes.
-* **📊 Dashboard en Tiempo Real:** Cálculo automático de medias de satisfacción en parámetros como Presentación, Sabor y Temperatura.
-* **🔍 Filtrado Avanzado:** Segmentación de datos por fecha, turno (Desayuno/Comida/Cena) y dieta (Basal/Blanda/Turmix).
-* **⚠️ Sistema de Alertas:** Notificaciones visuales automáticas cuando parámetros críticos caen por debajo de los estándares de calidad.
-* **📄 Exportación a PDF:** Generación de informes analíticos de forma nativa en el navegador.
+* **📱 Cuestionario Secuencial Táctil:** Interfaz paso a paso optimizada bajo la filosofía *"Fat Finger Design"* con botones e iconos de gran tamaño, garantizando la máxima accesibilidad web (WCAG).
+* **🔒 Anonimato por Diseño:** El sistema cumple estrictamente con la LOPD/RGPD; la entidad encuesta carece de relaciones con datos personales de pacientes o usuarios.
+* **🛡️ Control Anti-Spam Inteligente:** Bloqueo temporal basado en `LocalStorage` que restringe el envío a un máximo de una encuesta cada 4 horas por dispositivo.
+* **📊 Dashboard Analítico:** Panel de control con cálculos automáticos de medias, KPIs de satisfacción y gráficos interactivos temporales.
+* **🤖 Asistente Virtual con IA (Chatbot):** Integración nativa con modelos lingüísticos avanzados de Google para ayudar al personal a interpretar tendencias y generar conclusiones predictivas sobre los datos recogidos.
+* **⚠️ Alertas Críticas por Email:** Sistema automatizado que detecta anomalías de seguridad alimentaria en tiempo real (ej. Temperatura crítica $\le$ 2) e inicia el envío inmediato de correos de alerta a los gestores asignados.
+* **📄 Informes en PDF:** Generación nativa y descarga de reportes ejecutivos estadísticos directamente desde el navegador del usuario.
 
-## 🛠️ Tecnologías
-**Frontend:**
-* **Core:** React (v18+) + Vite + JavaScript (ES6+) / TSX.
-* **Enrutamiento:** React Router DOM.
-* **Estilos:** Tailwind CSS.
-* **Visualización de Datos:** Recharts.
-* **Utilidades:** Lucide React (iconos) y jsPDF + html2canvas (generación de informes).
+## 🛠&nbsp; Stack Tecnológico
 
-**Backend (Supabase):**
-* **Base de Datos:** PostgreSQL.
-* **Autenticación:** Supabase Auth (para gestores y administradores).
-* **Seguridad:** Row Level Security (RLS) para aislar los datos entre diferentes hospitales.
+**Frontend (Single Page Application):**
+* **Core & Compilación:** React 18+ y Vite.
+* **Arquitectura de Software:** Repositorios desacoplados (Pattern Repository) e interfaces en TypeScript/JavaScript (TSX/JSX).
+* **Gestión de Estado Global:** Zustand con persistencia en memoria local (`persist` middleware).
+* **Enrutamiento:** React Router DOM (Manejo de rutas públicas, privadas y de administración).
+* **Diseño e Interfaz:** Tailwind CSS v4.0, componentes de Shadcn/UI y librería de iconos Lucide React.
+* **Gráficos e Informes:** Recharts para analíticas dinámicas, junto a `jsPDF` y `html2canvas`.
 
-## 🗄️ Modelo de Datos
-La base de datos relacional en PostgreSQL está estructurada para permitir la participación anónima de los pacientes y la gestión segura por parte de los responsables de calidad:
+**Backend as a Service (Supabase):**
+* **Base de Datos:** PostgreSQL con soporte transaccional.
+* **Autenticación:** Supabase Auth con control de sesiones y recuperación de credenciales mediante tokens por correo electrónico.
+* **Ciberseguridad:** Activación estricta de **Row Level Security (RLS)** con políticas personalizadas por rol. Los datos están aislados por centro sanitario: un gestor solo interactúa con los hospitales que tiene asignados en su perfil.
 
-1.  `hospitales`: Catálogo de centros.
-2.  `perfiles`: Usuarios gestores vinculados a Supabase Auth y a un hospital específico.
-3.  `parametros`: Preguntas evaluables del método COCINHEX.
-4.  `encuestas`: Cabecera de la encuesta anónima (turno, dieta, planta).
-5.  `respuestas`: Detalle de las puntuaciones (0-10) vinculadas a la encuesta.
+## 🗄️ Modelo de Datos y Arquitectura Relacional
+La base de datos PostgreSQL está optimizada para soportar una estructura multi-centro y mantener el desacoplamiento de la identidad del paciente:
 
-### Políticas de Seguridad (RLS) en Supabase:
-* **Pacientes:** Cualquier usuario anónimo puede insertar nuevas encuestas en el sistema (Cero fricción).
-* **Gestores:** Solo pueden visualizar e interactuar con los datos (encuestas y respuestas) que pertenezcan a su `hospital_id` asignado.
-* **Administradores:** Tienen acceso global para crear nuevos hospitales y gestionar los perfiles de los gestores.
+1. `hospitales`: Almacena el catálogo de centros públicos con su respectivo código, provincia y área de salud.
+2. `perfiles`: Información del personal (nombre, avatar, rol e interruptor de notificaciones de alerta).
+3. `perfiles_hospitales`: Tabla puente relacional (Muchos a Muchos) que mapea qué gestor tiene control sobre qué hospital(es).
+4. `turnos` y `parametros`: Configuraciones dinámicas de franjas horarias y preguntas del método COCINHEX específicas por hospital.
+5. `encuestas`: Cabecera de la evaluación anónima del paciente (hospital, fecha, turno, tipo de dieta, planta y sugerencias de texto).
+6. `respuestas`: Detalle transaccional de las puntuaciones de la escala de emojis (valores validados estrictamente del 1 al 5).
 
 ## 👤 Roles de Usuario
-| Rol | Permisos |
-| :--- | :--- |
-| **Paciente (Anónimo)** | Acceso a la interfaz pública mediante tablet o código QR para rellenar encuestas. No requiere registro. |
-| **Gestor de Calidad** | Acceso privado. Puede visualizar el *dashboard* de su hospital, filtrar encuestas, ver alertas y exportar reportes PDF. |
-| **Administrador SES** | Acceso total. Gestión de la tabla de hospitales y creación/desactivación de perfiles de gestores de calidad. |
+| Rol | Ámbito | Permisos y Capacidades |
+| :--- | :--- | :--- |
+| **Paciente** | Público (Anónimo) | Acceso vía código QR o tablet en bandeja de comida. Completa encuestas con escala visual de emojis sin necesidad de credenciales. |
+| **Gestor de Calidad** | Privado (Autenticado) | Acceso restringido por RLS a sus centros asignados. Monitorea métricas en tiempo real, interactúa con el Chatbot de IA, gestiona parámetros locales, recibe alertas EmailJS y exporta PDFs. |
+| **Administrador SES** | Superusuario (Autenticado) | Acceso global. Visualización consolidada de la red hospitalaria regional, administración de cuentas de usuario y control del CRUD de centros sanitarios. |
 
-
-## 🖥️ Vistas Principales
-
-| Vista | Descripción |
-| :--- | :--- |
-| **🏠 Inicio Encuesta** | Pantalla de bienvenida amigable con botón gigante de inicio para el paciente. |
-| **📋 Cuestionario táctil** | Interfaz paso a paso (tipo tarjeta) para valorar Presentación, Sabor, Temperatura, etc., mediante iconos. |
-| **🔐 Login** | Pantalla de acceso seguro y recuperación de contraseña exclusivo para el staff del hospital. |
-| **📊 Dashboard** | Panel de control principal con métricas en tiempo real, gráficos de barras y evolución semanal. |
-| **🔍 Historial / Alertas** | Tabla con el registro detallado de todas las encuestas y resaltado visual de las puntuaciones críticas. |
-| **⚙️ Administración** | (Solo Administradores) Panel CRUD para gestionar los centros hospitalarios y las cuentas del personal. |
+## 🖥️ Estructura de Vistas del Sistema
+* **Vistas del Paciente:** `Inicio Encuesta` (pantalla limpia de bienvenida) y `Cuestionario Táctil` (flujo guiado por tarjetas).
+* **Vistas de Autenticación:** `Login` seguro con visibilidad conmutada de contraseña ("ojito") y formulario de `Recuperación de Contraseña`.
+* **Vistas del Gestor:** `Dashboard` analítico con KPIs, `Historial / Alertas` con resaltado de filas críticas, `Chatbot de IA` y ajustes de `Perfil` editable (nombre, avatar y alertas).
+* **Vistas del Administrador:** Panel de `Gestión de Responsables` (con asignación dinámica N:M de hospitales) y mantenimiento global del sistema.
 
 ## 🚀 Instalación y Configuración Local
 
-Sigue estos pasos para desplegar el proyecto en tu entorno local. Necesitarás tener instalado Node.js (v18+).
+Sigue estos pasos para desplegar el entorno de desarrollo en tu máquina local. Asegúrate de disponer de Node.js (v18+).
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tu-usuario/hospitalfood-quality.git
+git clone [https://github.com/ronicleal/Hospifood_Quality.git]
 ````
 ### 2. Instalar dependencias
 ```bash
 npm install
 ```
 ### 3. Configuración de variables de entorno
-Crea un archivo `.env.local` en la raíz del proyecto y añade tus claves de Supabase:
+Crea un archivo .env en la raíz del proyecto (este archivo se encuentra protegido en el .gitignore para evitar filtraciones de seguridad) e introduce tus credenciales de los proveedores de servicios:
 ```bash
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
-```
+# Servidor BaaS Supabase
+VITE_SUPABASE_URL=tu_url_de_supabase
+VITE_SUPABASE_ANON_KEY=tu_clave_anonima_publica
 
+# Integración Inteligencia Artificial (Google AI Studio)
+VITE_GEMINI_API_KEY=tu_clave_de_gemini_api
+
+# Automatización de Alertas por Email
+VITE_EMAILJS_SERVICE_ID=tu_service_id
+VITE_EMAILJS_TEMPLATE_ID=tu_template_id
+VITE_EMAILJS_PUBLIC_KEY=tu_public_key
+```
+### 4. Lanzar en Entorno Local
+```bash
+npm run dev
+```
 ### 🧑‍🏫 Tutorías
 * **Tutor: Francisco José Mera Calderón**
 
 ## 📅 Evolución del Proyecto (Resumen de Tutorías)
-Toda la documentación detallada sobre el avance semanal se encuentra en el repositorio, dentro de la ruta: `docs >> Evolución de Proyecto`.
+Toda la documentación detallada sobre el avance del proyecto se encuentra en el repositorio, dentro de la ruta: `docs`.
 
 | Fecha | Hito / Tarea Realizada |
 | :--- | :--- |
@@ -116,6 +125,7 @@ Toda la documentación detallada sobre el avance semanal se encuentra en el repo
 | **25 mayo** | Invitación de los miembros del tribunal al proyecto.|
 | **18 mayo** | Entrega del proyecto e invitación al tribunal.|
 | **01 junio** | Defensa del proyecto.|
+
 
 
 
