@@ -5,7 +5,7 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=3ECF8E)
 
-**Hospifood Quality** es una plataforma web inteligente de nivel empresarial diseñada para la digitalización, control y análisis en tiempo real de la calidad alimentaria en la red de hospitales públicos de Extremadura. Basado en el método normalizado **COCINHEX**, este ecosistema sustituye las encuestas en papel por una interfaz digital táctil para los pacientes y proporciona una potente herramienta analítica asistida por IA para los Responsables de Calidad y la Dirección del SES.
+**Hospifood Quality** es una plataforma web inteligente de nivel empresarial diseñada para la digitalización, control y análisis en tiempo real de la calidad alimentaria por parte del paciente en la red de hospitales públicos de Extremadura. Basado en el método normalizado **COCINHEX**, este sistema sustituye las encuestas en papel por una interfaz digital táctil para los pacientes y proporciona una potente herramienta analítica asistida por IA para el Responsable de Calidad (Veterinario Bromatólogo) .
 
 ## 🚀 Enlace de Producción
 La aplicación se encuentra desplegada y accesible públicamente en: **[hospifood-quality.vercel.app](https://hospifood-quality.vercel.app/)**
