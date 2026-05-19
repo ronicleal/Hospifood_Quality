@@ -126,11 +126,6 @@ Toda la documentación detallada sobre el avance del proyecto se encuentra en el
 | **18 mayo** | Entrega del proyecto e invitación al tribunal.|
 | **01 junio** | Defensa del proyecto.|
 
-### 💡 Qué mejoras se han aplicado:
-1. **Enfoque Avanzado:** Se ha sustituido la descripción simple por una que destaca que es un software multi-centro para Hospitales.
-2. **Características Reales:** Añadido el control anti-spam de 4 horas, el Chatbot de IA de Gemini, las alertas por correo con EmailJS y el diseño "Fat Finger".
-3. **Estructura del Modelo de Datos:** Se ha actualizado reflejando la tabla relacional Muchos a Muchos (`perfiles_hospitales`), las preguntas dinámicas por centro y el rango de puntuación por emojis (del 1 al 5).
-4. **Instalación y Seguridad de Claves:** Se han incluido en el bloque de instalación las variables reales del archivo `.env` que necesita el proyecto (Supabase, Gemini y EmailJS), dejando claro que el archivo está protegido en el `.gitignore`.
 
 
 
