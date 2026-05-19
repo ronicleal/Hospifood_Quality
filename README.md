@@ -63,7 +63,7 @@ Sigue estos pasos para desplegar el entorno de desarrollo en tu máquina local. 
 
 ### 1. Clonar el repositorio
 ```bash
-git clone [https://github.com/ronicleal/HospifoodQuality.git](https://github.com/ronicleal/HospifoodQuality.git)
+git clone [https://github.com/ronicleal/Hospifood_Quality.git]
 ````
 ### 2. Instalar dependencias
 ```bash
