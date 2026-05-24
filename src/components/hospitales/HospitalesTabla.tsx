@@ -1,4 +1,4 @@
-import { Power, PowerOff, Trash2, Pencil } from "lucide-react"; // 👈 Añadido Pencil
+import { Power, PowerOff, Trash2, Pencil } from "lucide-react"; 
 import { Button } from "../ui/button";
 import type { Hospital } from "../../interfaces/Hospital";
 
@@ -6,7 +6,7 @@ interface Props {
     hospitales: Hospital[];
     onToggleActivo: (id: number, estadoActual: boolean) => void;
     onDelete: (id: number) => void;
-    onEdit: (hospital: Hospital) => void; // 👈 Nueva prop
+    onEdit: (hospital: Hospital) => void; 
 }
 
 export const HospitalesTabla = ({ hospitales, onToggleActivo, onDelete, onEdit }: Props) => {
@@ -44,8 +44,7 @@ export const HospitalesTabla = ({ hospitales, onToggleActivo, onDelete, onEdit }
                                     <Button variant="outline" size="sm" onClick={() => onToggleActivo(hospital.id, hospital.activo)} className={hospital.activo ? 'text-muted-foreground border-border hover:bg-accent' : 'text-primary border-primary/20 hover:bg-primary/10'}>
                                         {hospital.activo ? <PowerOff size={16} /> : <Power size={16} />}
                                     </Button>
-                                    
-                                    {/* 👇 Botón Editar */}
+                                                               
                                     <Button 
                                         variant="outline" size="sm" 
                                         onClick={() => onEdit(hospital)} 

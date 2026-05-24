@@ -14,7 +14,6 @@ export const HospitalesPage = () => {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // 👇 Estado para edición
     const [hospitalEnEdicion, setHospitalEnEdicion] = useState<Hospital | null>(null);
 
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
@@ -31,7 +30,6 @@ export const HospitalesPage = () => {
 
     useEffect(() => { cargarHospitales(); }, []);
 
-    // 👇 Funciones para manejar el ciclo de edición
     const iniciarEdicion = (hospital: Hospital) => {
         setHospitalEnEdicion(hospital);
         setNombre(hospital.nombre);
@@ -49,7 +47,6 @@ export const HospitalesPage = () => {
         setAreaSalud("");
     };
 
-    // 👇 Manejador unificado (Submit)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nombre.trim() || !codigoCentro.trim()) return;

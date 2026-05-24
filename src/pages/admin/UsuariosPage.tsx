@@ -17,7 +17,6 @@ export const UsuariosPage = () => {
     const [saving, setSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // Ojo aquí: el ID del usuario en Supabase Auth es un STRING, no un number
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
 
     const gestorRepo = createGestorRepository();

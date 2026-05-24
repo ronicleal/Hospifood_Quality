@@ -6,7 +6,7 @@ import {
 
 import { useAuthStore } from "../store/authStore";
 import { createUserRepository } from "../database/repositories";
-import { ThemeToggle } from "../components/ui/ThemeToggle"; // 👈 IMPORTACIÓN AÑADIDA
+import { ThemeToggle } from "../components/ui/ThemeToggle"; 
 
 export const PanelLayout = () => {
     const location = useLocation();
@@ -23,7 +23,6 @@ export const PanelLayout = () => {
 
     const isActive = (path: string) => location.pathname === path;
 
-    // Función auxiliar para los colores de los enlaces
     const getLinkClass = (path: string, isSpecial: boolean = false) => {
         const activeClass = isSpecial 
             ? 'border-purple-600 text-purple-600' 
@@ -32,26 +31,21 @@ export const PanelLayout = () => {
             ? 'border-transparent text-purple-400 hover:text-purple-700' 
             : 'border-transparent text-muted-foreground hover:text-foreground';
         
-        // 👇 Añadido 'whitespace-nowrap' para que en móvil el texto no salte de línea y se pueda hacer scroll
         return `flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap ${isActive(path) ? activeClass : inactiveClass}`;
     };
 
     return (
         <div className="min-h-screen bg-background font-sans relative">
             
-            {/* 👇 FONDOS DEGRADADOS FIJOS 👇 */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
             </div>
 
-            {/* 👇 Cabecera con efecto cristal (bg-card/95 y backdrop-blur-sm) 👇 */}
             <header className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* 👇 Modificado: flex-col en móvil, flex-row en desktop */}
                     <div className="flex flex-col md:flex-row justify-between items-center py-3 md:py-0 md:h-16 gap-3 md:gap-0">
 
-                        {/* CONTENEDOR SUPERIOR MÓVIL: LOGO + PERFIL(Móvil) */}
                         <div className="flex justify-between items-center w-full md:w-auto">
                             {/* LOGO */}
                             <div className="flex items-center gap-2">
@@ -61,9 +55,8 @@ export const PanelLayout = () => {
                                 <span className="font-extrabold text-lg sm:text-xl text-card-foreground tracking-tight">Hospifood</span>
                             </div>
 
-                            {/* 👇 PERFIL Y LOGOUT (SOLO MÓVIL) 👇 */}
                             <div className="flex md:hidden items-center gap-3">
-                                <ThemeToggle /> {/* 👈 BOTÓN DE TEMA EN MÓVIL */}
+                                <ThemeToggle /> 
                                 
                                 <Link to="/panel/perfil" className="hover:bg-muted/50 p-1 rounded-full transition-colors">
                                     {isAdmin ? (
@@ -78,8 +71,7 @@ export const PanelLayout = () => {
                             </div>
                         </div>
 
-                        {/* 👇 NAVEGACIÓN DINÁMICA POR ROLES 👇 */}
-                        {/* Se quitó 'hidden md:flex' y se añadió 'flex w-full overflow-x-auto' */}
+                        {/* NAVEGACIÓN DINÁMICA POR ROLES */}
                         <nav className="flex w-full md:w-auto space-x-2 lg:space-x-4 overflow-x-auto relative z-10 pb-1 md:pb-0 scroll-smooth">
                             {isAdmin ? (
                                 /* MENÚ EXCLUSIVO DEL ADMINISTRADOR */
@@ -126,11 +118,11 @@ export const PanelLayout = () => {
                             )}
                         </nav>
 
-                        {/* 👇 PERFIL Y LOGOUT (SOLO ESCRITORIO) 👇 */}
+                        {/* PERFIL Y LOGOUT (SOLO ESCRITORIO) */}
                         <div className="hidden md:flex items-center gap-4 relative z-10">
                             
-                            <ThemeToggle /> {/* 👈 BOTÓN DE TEMA EN ESCRITORIO */}
-                            <div className="w-px h-6 bg-border mx-1" /> {/* 👈 Separador estético */}
+                            <ThemeToggle />
+                            <div className="w-px h-6 bg-border mx-1" />
 
                             <Link to="/panel/perfil" className="flex items-center gap-3 hover:bg-muted/50 p-1 pr-3 rounded-full transition-colors group cursor-pointer" title="Ir a mi perfil">
                                 {isAdmin ? (

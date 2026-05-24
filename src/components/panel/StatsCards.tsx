@@ -1,7 +1,7 @@
-// src/components/admin/StatsCards.tsx
+
 import { Users, TrendingUp, Utensils, MessageSquare } from 'lucide-react';
 import type { ResumenKPI } from '../../interfaces/Estadisticas';
-import { Card, CardContent } from '../ui/card'; // Importamos el componente Shadcn
+import { Card, CardContent } from '../ui/card';
 
 interface Props { resumen: ResumenKPI }
 

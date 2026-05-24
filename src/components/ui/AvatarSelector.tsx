@@ -1,4 +1,4 @@
-// Ponemos las rutas de las imágenes que vas a guardar en public/assets/avatars/
+
 const AVATARES_PREDEFINIDOS = [
     "/avatars/avatar1.jpg",
     "/avatars/avatar2.jpg",
@@ -28,8 +28,7 @@ export const AvatarSelector = ({ onSelect, selectedUrl }: Props) => {
                                 ? "border-primary scale-110 shadow-lg" 
                                 : "border-transparent hover:scale-105 shadow-sm"
                         }`}
-                    >
-                        {/* object-cover asegura que tus imágenes se adapten perfecto al círculo */}
+                    >                       
                         <img src={url} alt="Avatar" className="w-14 h-14 object-cover" />
                     </button>
                 ))}

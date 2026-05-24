@@ -1,4 +1,4 @@
-import { Trash2, UserCog, Users, Clock } from "lucide-react"; // 👈 Añadido Clock
+import { Trash2, UserCog, Users, Clock } from "lucide-react"; 
 import { Button } from "../ui/button";
 import type { GestorData } from "../../database/repositories/GestorRepository";
 
@@ -12,7 +12,6 @@ interface Props {
 
 export const UsuariosTabla = ({ gestores, gestorEditando, loading, onEdit, onDelete }: Props) => {
     
-    // 👇 Función para formatear la fecha
     const formatFecha = (isoString?: string | null) => {
         if (!isoString) return "Nunca";
         const date = new Date(isoString);
@@ -28,12 +27,11 @@ export const UsuariosTabla = ({ gestores, gestorEditando, loading, onEdit, onDel
                 <Users size={18} className="text-muted-foreground"/>
                 <h3 className="font-semibold text-foreground">Directorio de Gestores Registrados</h3>
             </div>
-            <div className="overflow-x-auto"> {/* 👈 Añadido para que no se rompa en pantallas pequeñas si hay muchas columnas */}
+            <div className="overflow-x-auto"> 
                 <table className="w-full text-left border-collapse min-w-[600px]">
                     <thead className="bg-muted text-muted-foreground text-sm">
                         <tr>
                             <th className="p-4 font-semibold border-b border-border">Responsable</th>
-                            {/* 👇 NUEVA COLUMNA 👇 */}
                             <th className="p-4 font-semibold border-b border-border">Último Acceso</th>
                             <th className="p-4 font-semibold border-b border-border">Hospitales Asignados</th>
                             <th className="p-4 font-semibold border-b border-border text-right">Acciones</th>
@@ -49,8 +47,7 @@ export const UsuariosTabla = ({ gestores, gestorEditando, loading, onEdit, onDel
                                         <p className="font-bold text-foreground text-base">{gestor.nombre_completo}</p>
                                         <p className="text-muted-foreground font-mono text-xs mt-0.5">ID: {gestor.id.split('-')[0]}...</p>
                                     </td>
-                                    
-                                    {/* 👇 NUEVO DATO EN LA TABLA 👇 */}
+                                                                       
                                     <td className="p-4">
                                         <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
                                             <Clock size={14} className={gestor.ultimo_acceso ? "text-primary/70" : "text-muted-foreground/50"} />

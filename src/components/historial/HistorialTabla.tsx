@@ -17,7 +17,7 @@ export const HistorialTabla = ({ encuestas }: Props) => {
                     <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
                         <tr>
                             <th className="px-6 py-4">Fecha</th>
-                            <th className="px-6 py-4">Planta</th> {/* 👈 Nueva Columna */}
+                            <th className="px-6 py-4">Planta</th>
                             <th className="px-6 py-4">Turno</th>
                             <th className="px-6 py-4">Nota media</th>
                             <th className="px-6 py-4 w-1/3">Sugerencias</th>
@@ -30,7 +30,7 @@ export const HistorialTabla = ({ encuestas }: Props) => {
                                     <td className="px-6 py-4 font-medium">
                                         {encuesta.fecha} <span className="text-xs text-muted-foreground block">{encuesta.hora}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-foreground font-medium">{encuesta.planta || '-'}</td> {/* 👈 Dato de Planta */}
+                                    <td className="px-6 py-4 text-foreground font-medium">{encuesta.planta || '-'}</td> 
                                     <td className="px-6 py-4 font-medium">{encuesta.turno}</td>
                                     <td className="px-6 py-4">
                                         <Badge variant={getBadgeVariant(encuesta.notaMedia)}>{encuesta.notaMedia.toFixed(1)}</Badge>

@@ -21,7 +21,7 @@ export class SupabaseGestorRepository implements GestorRepository {
         const datosFormateados = data?.map((gestor: any) => ({
             id: gestor.id,
             nombre_completo: gestor.nombre_completo,
-            ultimo_acceso: gestor.ultimo_acceso, // 👈 Lo mapeamos
+            ultimo_acceso: gestor.ultimo_acceso, 
             hospitales: gestor.perfiles_hospitales || []
         }));
             
@@ -29,10 +29,9 @@ export class SupabaseGestorRepository implements GestorRepository {
     }
 
     async assignHospitales(gestorId: string, hospitalesIds: number[]) {
-        // 1. Borramos todas las asignaciones anteriores de este gestor por limpieza
+    
         await supabase.from('perfiles_hospitales').delete().eq('perfil_id', gestorId);
-
-        // 2. Insertamos las nuevas asignaciones
+        
         if (hospitalesIds.length > 0) {
             const relaciones = hospitalesIds.map(hId => ({
                 perfil_id: gestorId,
@@ -46,16 +45,14 @@ export class SupabaseGestorRepository implements GestorRepository {
     }
 
     async deleteGestor(id: string) {
-        // 1. Primero borramos el perfil por si acaso no hay borrado en cascada
+
         await supabase.from('perfiles').delete().eq('id', id);
 
-        // 2. Luego llamamos a nuestra función SQL segura para borrar la autenticación
         const { error } = await supabase.rpc('borrar_usuario_completo', { usuario_id: id });
       
         return { error };
     }
 
-    // 👇 NUEVO MÉTODO PARA ACTUALIZAR LA FECHA DE ACCESO 👇
     async updateUltimoAcceso(id: string) {
         const { error } = await supabase
             .from('perfiles')

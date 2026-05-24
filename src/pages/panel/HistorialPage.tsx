@@ -19,7 +19,7 @@ export const HistorialPage = () => {
     const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
     const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
 
-    const [filtroPlanta, setFiltroPlanta] = useState("Todas"); // 👈 Nuevo estado
+    const [filtroPlanta, setFiltroPlanta] = useState("Todas"); 
     const [fechaInicio, setFechaInicio] = useState("");
     const [fechaFin, setFechaFin] = useState("");
     const [turnoFiltro, setTurnoFiltro] = useState("Todos");
@@ -47,7 +47,6 @@ export const HistorialPage = () => {
         loadData();
     }, [misHospitales, isAdmin, filtroHospitalId]);
 
-    // 👇 Inyectamos el filtro de planta en la memoria 👇
     const encuestasFiltradas = encuestas.filter(e => {
         const matchText = e.sugerencia.toLowerCase().includes(searchText.toLowerCase());
         const matchTurno = turnoFiltro === "Todos" || e.turno === turnoFiltro;
@@ -67,13 +66,12 @@ export const HistorialPage = () => {
 
     const exportarPDF = () => {
         const doc = new jsPDF();
-        const nombreHospital = filtroHospitalId === 0 ? "Global SES" : hospitalesDisponibles.find(h => h.id === filtroHospitalId)?.nombre;
+        const nombreHospital = filtroHospitalId === 0 ? "Global" : hospitalesDisponibles.find(h => h.id === filtroHospitalId)?.nombre;
         
         doc.text(`Reporte de Satisfacción - ${nombreHospital}`, 14, 20);
         doc.setFontSize(10);
-        if (filtroPlanta !== "Todas") doc.text(`Unidad/Planta: ${filtroPlanta}`, 14, 26); // 👈 Info en el PDF
+        if (filtroPlanta !== "Todas") doc.text(`Unidad/Planta: ${filtroPlanta}`, 14, 26);
 
-        // 👈 Añadimos la columna Planta al PDF
         const tableColumn = ["Fecha", "Planta", "Turno", "Nota Media", "Comentarios"];
         const tableRows = encuestasFiltradas.map(e => [
             e.fecha, e.planta || "-", e.turno, `${e.notaMedia} / 5`, e.sugerencia || "Sin comentarios"
@@ -101,7 +99,7 @@ export const HistorialPage = () => {
             <HistorialControles 
                 isAdmin={isAdmin} misHospitales={misHospitales} hospitalesDisponibles={hospitalesDisponibles}
                 filtroHospitalId={filtroHospitalId} setFiltroHospitalId={setFiltroHospitalId}
-                filtroPlanta={filtroPlanta} setFiltroPlanta={setFiltroPlanta} // 👈 Pasamos el prop
+                filtroPlanta={filtroPlanta} setFiltroPlanta={setFiltroPlanta} 
                 fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
                 fechaFin={fechaFin} setFechaFin={setFechaFin}
                 turnoFiltro={turnoFiltro} setTurnoFiltro={setTurnoFiltro}

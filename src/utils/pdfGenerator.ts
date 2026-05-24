@@ -38,7 +38,7 @@ export const chartToImage = async (ref: React.RefObject<HTMLDivElement | null>):
 interface GenerarPDFProps {
     tituloReporte: string;
     nombreHospital: string;
-    nombrePlanta: string; // 👈 Añadido
+    nombrePlanta: string; 
     totalEncuestas: number;
     encuestasFiltradas: EncuestaHistorial[];
     dataTurnos: { name: string; nota: number }[];
@@ -61,7 +61,7 @@ export const generarReportePDF = async ({
     doc.rect(0, 0, 210, 45, 'F');
     doc.setFontSize(24);
     doc.setTextColor(255, 255, 255);
-    doc.text(`SES - HOSPIFOOD QUALITY`, 20, 20);
+    doc.text(`HOSPIFOOD QUALITY`, 20, 20);
     doc.setFontSize(14);
     doc.text(`INFORME DE CALIDAD Y SATISFACCIÓN DEL PACIENTE`, 20, 30);
     doc.setFontSize(11);
@@ -74,7 +74,7 @@ export const generarReportePDF = async ({
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
     doc.text(`Centro Hospitalario: ${nombreHospital}`, 25, 68);
-    doc.text(`Unidad / Planta: ${nombrePlanta}`, 25, 74); // 👈 Añadido al PDF
+    doc.text(`Unidad / Planta: ${nombrePlanta}`, 25, 74); 
     doc.text(`Tipo de Informe: ${tituloReporte.toUpperCase()}`, 25, 80);
     doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 25, 86);
     doc.text(`Volumen de Muestra: ${totalEncuestas} encuestas procesadas`, 25, 92);
@@ -126,7 +126,6 @@ export const generarReportePDF = async ({
     doc.setTextColor(80, 80, 80);
     doc.text("A continuación se detallan las respuestas individuales y comentarios proporcionados por los pacientes:", 20, 26);
 
-    // 👈 Añadimos la columna Planta a la tabla del reporte PDF
     autoTable(doc, {
         startY: 32,
         head: [['Fecha', 'Planta', 'Turno', 'Nota Media', 'Comentarios del Paciente']],

@@ -10,7 +10,6 @@ interface Props {
     areaSalud: string; setAreaSalud: (val: string) => void;
     loading: boolean;
     onSubmit: (e: React.FormEvent) => void;
-    // 👇 Nuevas props para edición
     isEditing?: boolean;
     onCancelEdit?: () => void;
 }

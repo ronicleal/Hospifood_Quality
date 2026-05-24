@@ -18,16 +18,13 @@ export const ChatbotIA = ({ hospitalId }: { hospitalId: number }) => {
     const enviarPregunta = async () => {
         if (!pregunta.trim()) return;
 
-        // Añadimos la pregunta del usuario al chat
         const nuevoMensajeUsuario: Mensaje = { rol: 'usuario', texto: pregunta };
         setMensajes(prev => [...prev, nuevoMensajeUsuario]);
         setPregunta('');
         setCargando(true);
 
-        // Llamamos a nuestra función de Gemini
         const respuestaIA = await consultarHospifoodBot(nuevoMensajeUsuario.texto, hospitalId);
 
-        // Añadimos la respuesta de la IA al chat
         setMensajes(prev => [...prev, { rol: 'ia', texto: respuestaIA }]);
         setCargando(false);
     };
@@ -60,14 +57,14 @@ export const ChatbotIA = ({ hospitalId }: { hospitalId: number }) => {
                         </button>
                     </div>
 
-                    {/* Historial de mensajes (Usamos bg-muted para dar contraste suave) */}
+                    {/* Historial de mensajes */}
                     <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-muted/30">
                         {mensajes.map((msg, index) => (
                             <div key={index} className={`flex ${msg.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
                                     msg.rol === 'usuario' 
                                     ? 'bg-primary text-primary-foreground rounded-tr-none' 
-                                    : 'bg-background text-foreground border border-border rounded-tl-none' // 👈 Usamos bg-background en lugar de bg-white
+                                    : 'bg-background text-foreground border border-border rounded-tl-none' 
                                 }`}>
                                     {msg.texto}
                                 </div>
@@ -75,7 +72,6 @@ export const ChatbotIA = ({ hospitalId }: { hospitalId: number }) => {
                         ))}
                         {cargando && (
                             <div className="flex justify-start">
-                                {/* 👇 Usamos bg-background y text-muted-foreground 👇 */}
                                 <div className="bg-background text-muted-foreground border border-border p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2 text-sm">
                                     <Loader2 size={16} className="animate-spin"/> Analizando datos...
                                 </div>

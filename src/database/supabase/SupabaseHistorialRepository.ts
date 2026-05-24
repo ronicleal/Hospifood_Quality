@@ -5,7 +5,6 @@ export class SupabaseHistorialRepository implements HistorialRepository {
     
     async getHistorial(hospitalesIds: number[], isAdmin: boolean = false): Promise<{ data?: EncuestaHistorial[]; error?: any; }> {
         try {
-            // 1. Preparamos la consulta base
             let query = supabase
                 .from('encuestas')
                 .select(`
@@ -14,17 +13,14 @@ export class SupabaseHistorialRepository implements HistorialRepository {
                 `)
                 .order('fecha', { ascending: false });
 
-            // 2. Si NO es admin, filtramos por sus hospitales
             if (!isAdmin) {
-                if (!hospitalesIds || hospitalesIds.length === 0) return { data: [] }; // Si no tiene hospitales, devolvemos vacío
+                if (!hospitalesIds || hospitalesIds.length === 0) return { data: [] };
                 query = query.in('hospital_id', hospitalesIds);
             }
 
-            // 3. Ejecutamos
             const { data, error } = await query;
             if (error) throw error;
 
-            // Transformamos los datos
             const historialFormateado: EncuestaHistorial[] = data.map((encuesta: any) => {
                 const respuestas = encuesta.respuestas || [];
                 const suma = respuestas.reduce((acc: number, curr: any) => acc + (curr.valor || 0), 0);
@@ -39,7 +35,7 @@ export class SupabaseHistorialRepository implements HistorialRepository {
                     hora: dateObj ? dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-',
                     turno: encuesta.turno || 'N/A',
                     sugerencia: encuesta.sugerencia || '-',
-                    planta: encuesta.planta || '-', // 👈 ¡Aquí mapeamos el nuevo campo!
+                    planta: encuesta.planta || '-', 
                     notaMedia: parseFloat(media.toFixed(1))
                 };
             });

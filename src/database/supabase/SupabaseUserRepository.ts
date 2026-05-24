@@ -15,7 +15,7 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async login(email: string, password: string) {
-    // 1. Autenticar en Supabase Auth
+
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -24,7 +24,6 @@ export class SupabaseUserRepository implements UserRepository {
     if (authError) return { data: null, error: authError };
     if (!authData.user) return { data: null, error: { message: 'No se recibió usuario tras login' } };
 
-    // 2. Buscar si el usuario tiene un perfil y un rol asignado en nuestra tabla
     const { data: profileData, error: profileError } = await this.getPerfilByUserId(authData.user.id);
 
     // Medida de seguridad: Si está registrado pero no tiene perfil (no es trabajador del hospital), lo echamos
@@ -76,8 +75,6 @@ export class SupabaseUserRepository implements UserRepository {
       if (error) return { error };
     }
 
-    // 2. Preparar el objeto de actualización para la tabla 'perfiles'
-    // Usamos un objeto dinámico para actualizar solo lo que se haya enviado
     const updates: any = {};
 
     if (nombre_completo !== undefined) {
@@ -92,7 +89,6 @@ export class SupabaseUserRepository implements UserRepository {
       updates.notificaciones_activas = notificaciones_activas;
     }
 
-    // 3. Si hay campos para actualizar en la tabla perfiles, ejecutamos la query
     if (Object.keys(updates).length > 0) {
       const { error } = await supabase
         .from('perfiles')

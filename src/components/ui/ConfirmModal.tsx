@@ -32,7 +32,6 @@ export const ConfirmModal = ({
         error: "bg-destructive/10"
     };
 
-    // Si es éxito usamos el botón azul/primario, si es error/warning usamos el rojo
     const buttonVariant = type === 'success' ? 'default' : 'destructive';
 
     return (

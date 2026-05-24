@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from "../database/supabase/Client";
-import type { Perfil } from '../interfaces/Perfil'; // 👈 1. Importamos la interfaz unificada
+import type { Perfil } from '../interfaces/Perfil'; 
 
 interface AuthState {
     session: any;
-    profile: Perfil | null; // 👈 2. Usamos Perfil en lugar de UserProfile
+    profile: Perfil | null;
     isAuthenticated: boolean;
     isAdmin: boolean;
 
@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
                                 hospitales: hospitalesAsignados,
                                 avatar_url: profileData.avatar_url,
                                 ultimo_acceso: fechaActual,
-                                notificaciones_activas: profileData.notificaciones_activas // 👈 4. Lo guardamos en el estado
+                                notificaciones_activas: profileData.notificaciones_activas 
                             },
                             isAuthenticated: true,
                             isAdmin: profileData.rol === 'admin'

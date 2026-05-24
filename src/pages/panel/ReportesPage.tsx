@@ -23,7 +23,7 @@ export const ReportesPage = () => {
 
     const [hospitalesDisponibles, setHospitalesDisponibles] = useState<Hospital[]>([]);
     const [filtroHospitalId, setFiltroHospitalId] = useState<number>(0);
-    const [filtroPlanta, setFiltroPlanta] = useState<string>("Todas"); // 👈 Nuevo estado
+    const [filtroPlanta, setFiltroPlanta] = useState<string>("Todas"); 
 
     const chartPieRef = useRef<HTMLDivElement>(null);
     const chartBarRef = useRef<HTMLDivElement>(null);
@@ -53,11 +53,9 @@ export const ReportesPage = () => {
     const hospitalSeleccionado = hospitalesDisponibles.find(h => h.id === filtroHospitalId);
     const NOMBRE_HOSPITAL = filtroHospitalId === 0 ? (isAdmin ? "Múltiples Centros (Global SES)" : "Mis Centros Asignados") : (hospitalSeleccionado?.nombre || "Hospital Seleccionado");
 
-    // Lógica de filtrado en memoria
     const encuestasFiltradas = encuestas.filter(e => {
         if (!e.fechaOriginal) return false;
         
-        // Filtro de Planta
         if (filtroPlanta !== "Todas" && e.planta !== filtroPlanta) return false;
 
         const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -92,7 +90,7 @@ export const ReportesPage = () => {
         generarReportePDF({
             tituloReporte: reporteData?.titulo || "Reporte", 
             nombreHospital: NOMBRE_HOSPITAL,
-            nombrePlanta: filtroPlanta, // 👈 Pasamos la planta al PDF
+            nombrePlanta: filtroPlanta,
             totalEncuestas, encuestasFiltradas, dataTurnos, chartPieRef, chartBarRef
         });
     };
@@ -129,7 +127,6 @@ export const ReportesPage = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                    {/* 👇 Selector de Planta en Reportes 👇 */}
                     <div className="w-full sm:w-48 space-y-2">
                         <label className="text-sm font-bold flex items-center gap-2 text-primary">
                             <BedDouble size={16} /> Unidad / Planta:

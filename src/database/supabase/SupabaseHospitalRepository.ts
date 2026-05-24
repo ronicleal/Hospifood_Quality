@@ -13,7 +13,6 @@ export class SupabaseHospitalRepository implements HospitalRepository {
     async createHospital(nombre: string, provincia: string, codigo_centro: string, area_salud: string) {
         const { data, error } = await supabase
             .from('hospitales')
-            // Insertamos todos los campos que requiere tu BD
             .insert([{ nombre, provincia, codigo_centro, area_salud, activo: true }])
             .select()
             .single();

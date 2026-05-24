@@ -19,7 +19,6 @@ export const EncuestaPage = () => {
     const [enviando, setEnviando] = useState(false);
     const [encuestaCompletada, setEncuestaCompletada] = useState(false);
     
-    // 👇 Nuevo estado para controlar si el paciente ya votó recientemente
     const [yaVoto, setYaVoto] = useState(false);
 
     const [modalAlerta, setModalAlerta] = useState<{isOpen: boolean; title: string; message: string; type: 'warning' | 'error'}>({ 
@@ -32,21 +31,19 @@ export const EncuestaPage = () => {
 
     const hospitalIdUrl = new URLSearchParams(window.location.search).get('h') || '1';
 
-    // 👇 EFECTO DE BLOQUEO POR LOCALSTORAGE 👇
     useEffect(() => {
         const ultimaVotacion = localStorage.getItem('hospifood_ultima_encuesta');
         if (ultimaVotacion) {
             const tiempoPasadoMs = new Date().getTime() - new Date(ultimaVotacion).getTime();
             const horasPasadas = tiempoPasadoMs / (1000 * 60 * 60);
             
-            // Si han pasado menos de 4 horas, activamos el bloqueo
             if (horasPasadas < 4) {
                 setYaVoto(true);
-                setLoading(false); // Quitamos el loading porque no necesitamos cargar las preguntas
+                setLoading(false); 
                 return;
             }
         }
-        // Si no ha votado o han pasado más de 4h, inicializamos la encuesta
+
         inicializarEncuesta();
     }, [hospitalIdUrl]);
 
@@ -143,7 +140,6 @@ export const EncuestaPage = () => {
                 }
             }
 
-            // 👇 Guardamos la marca de tiempo en el navegador al terminar con éxito
             localStorage.setItem('hospifood_ultima_encuesta', new Date().toISOString());
             
             setEncuestaCompletada(true);
@@ -162,7 +158,6 @@ export const EncuestaPage = () => {
     // --- VISTAS GLOBALES ---
     if (loading) return <div className="min-h-screen flex items-center justify-center text-primary font-bold animate-pulse">Cargando encuesta...</div>;
 
-    // 👇 VISTA SI YA HA VOTADO RECIENTEMENTE 👇
     if (yaVoto) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center animate-fade-in relative overflow-hidden">
@@ -182,7 +177,6 @@ export const EncuestaPage = () => {
         );
     }
 
-    // 👇 PANTALLA FINAL ACTUALIZADA Y LIMPIA 👇
     if (encuestaCompletada) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center animate-fade-in relative overflow-hidden">
