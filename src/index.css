@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* 1. Mapeo de variables Shadcn a Tailwind v4 */
+/* VARIABLES */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -26,8 +26,9 @@
   --radius-lg: var(--radius);
 }
 
-/* 2. Definición de los colores reales (Usando OKLCH) */
+/* Definición de los colores  */
 @layer base {
+  
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -36,7 +37,7 @@
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
     
-    /* AZUL SES PRINCIPAL */
+    /* AZUL PRINCIPAL */
     --primary: oklch(0.546 0.245 262.881);
     --primary-foreground: oklch(1 0 0); 
     
@@ -54,42 +55,41 @@
     --radius: 0.5rem;
   }
 
-  /* 👇 AQUÍ DEFINIMOS LOS COLORES DEL MODO OSCURO 👇 */
-  .dark {
-    --background: oklch(0.145 0 0); /* Fondo oscuro (Slate 950 aprox) */
-    --foreground: oklch(0.985 0 0); /* Texto claro */
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    
-    /* Mantenemos tu azul SES para dar identidad visual */
-    --primary: oklch(0.546 0.245 262.881);
-    --primary-foreground: oklch(1 0 0);
-    
-    --secondary: oklch(0.269 0 0); /* Grises oscuros para fondos secundarios */
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0); /* Texto grisáceo para modo oscuro */
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.269 0 0); /* Bordes oscuros */
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.546 0.245 262.881);
-  }
-
-  /* 3. Reglas globales sin @apply */
   * {
     border-color: var(--border);
     outline-color: var(--ring);
   }
   
-  /* El transition-colors hará que el cambio de claro a oscuro sea suave */
   body {
     background-color: var(--background);
     color: var(--foreground);
     transition: background-color 0.3s ease, color 0.3s ease; 
   }
+
+  /* MODO OSCURO */
+  .dark {
+    --background: oklch(0.145 0 0); 
+    --foreground: oklch(0.985 0 0); 
+    --card: oklch(0.145 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.145 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    
+    --primary: oklch(0.546 0.245 262.881);
+    --primary-foreground: oklch(1 0 0);
+    
+    --secondary: oklch(0.269 0 0); 
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.269 0 0); 
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.546 0.245 262.881);
+  }
+
+
 }
