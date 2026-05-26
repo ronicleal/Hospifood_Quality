@@ -8,8 +8,6 @@ interface Props {
     filtroHospitalId: number;
     setFiltroHospitalId: (id: number) => void;
     hospitalesDisponibles: Hospital[];
-    
-    // 👇 Nuevos props para la planta 👇
     filtroPlanta: string;
     setFiltroPlanta: (planta: string) => void;
 }
@@ -25,7 +23,6 @@ export const DashboardHeader = ({ isAdmin, misHospitalesLength, filtroHospitalId
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                {/* Selector de Planta (Siempre visible) */}
                 <div className="w-full sm:w-48 space-y-2">
                     <label className="text-sm font-bold flex items-center gap-2 text-primary">
                         <BedDouble size={16} /> Unidad / Planta:
@@ -42,7 +39,6 @@ export const DashboardHeader = ({ isAdmin, misHospitalesLength, filtroHospitalId
                     </select>
                 </div>
 
-                {/* Selector de Hospital (Solo Admin o Gestor con >1 hospital) */}
                 {(isAdmin || misHospitalesLength > 1) && (
                     <div className="w-full sm:w-80 space-y-2">
                         <label className="text-sm font-bold flex items-center gap-2 text-primary">

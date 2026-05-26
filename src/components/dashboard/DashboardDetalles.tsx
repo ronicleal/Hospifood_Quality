@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const DashboardDetalles = ({ filtroHospitalId, detallesGestores, detallesTurnos, detallesParametros }: Props) => {
-    if (filtroHospitalId === 0) return null; // Solo se muestra si hay 1 hospital seleccionado
+    if (filtroHospitalId === 0) return null;
 
     return (
         <div className="pt-8 border-t border-border animate-fade-in mt-8">

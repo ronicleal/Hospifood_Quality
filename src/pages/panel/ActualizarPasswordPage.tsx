@@ -10,7 +10,7 @@ import { PasswordSegura } from "../../components/ui/PasswordSegura";
 
 export const ActualizarPasswordPage = () => {
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState(""); // Estado para la confirmación
+    const [confirmPassword, setConfirmPassword] = useState(""); 
     const [loading, setLoading] = useState(false);
     const [exito, setExito] = useState(false);
     const navigate = useNavigate();
@@ -18,7 +18,6 @@ export const ActualizarPasswordPage = () => {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Verificación de coincidencia antes de llamar al repositorio
         if (password !== confirmPassword) {
             return;
         }

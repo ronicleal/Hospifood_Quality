@@ -1,4 +1,4 @@
-import { Building2, Power, PowerOff, Trash2, Pencil } from "lucide-react"; // 👈 Añadido Pencil
+import { Building2, Power, PowerOff, Trash2, Pencil } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Turno } from "../../interfaces/Turnos";
 
@@ -8,7 +8,7 @@ interface Props {
     loading: boolean;
     onToggleActivo: (id: number, estadoActual: boolean) => void;
     onDelete: (id: number) => void;
-    onEdit: (turno: Turno) => void; // 👈 Añadido onEdit
+    onEdit: (turno: Turno) => void; 
 }
 
 export const TurnosTabla = ({ turnos, isAdmin, loading, onToggleActivo, onDelete, onEdit }: Props) => {
@@ -47,13 +47,11 @@ export const TurnosTabla = ({ turnos, isAdmin, loading, onToggleActivo, onDelete
                             
                             {!isAdmin && (
                                 <td className="p-4 flex justify-end gap-2">
-                                    {/* Botón Activar/Desactivar */}
                                     <Button variant="outline" size="sm" onClick={() => onToggleActivo(turno.id, turno.activo)}
                                         className={turno.activo ? 'text-muted-foreground border-border hover:bg-accent' : 'text-primary border-primary/20 hover:bg-primary/10'}>
                                         {turno.activo ? <PowerOff size={16} /> : <Power size={16} />}
                                     </Button>
 
-                                    {/* 👇 NUEVO BOTÓN DE EDITAR 👇 */}
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
@@ -64,7 +62,6 @@ export const TurnosTabla = ({ turnos, isAdmin, loading, onToggleActivo, onDelete
                                         <Pencil size={16} />
                                     </Button>
 
-                                    {/* Botón Eliminar */}
                                     <Button variant="outline" size="sm" onClick={() => onDelete(turno.id)} className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive">
                                         <Trash2 size={16} />
                                     </Button>

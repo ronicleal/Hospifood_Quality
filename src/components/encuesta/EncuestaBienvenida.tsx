@@ -28,7 +28,6 @@ const getIconoTurno = (nombre: string) => {
 
 export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turnoSeleccionado, onChangePlanta, onChangeTurno, onComenzar }: Props) => {
     return (
-        // 👇 Fondo principal usando bg-background y text-foreground
         <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
             <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -38,16 +37,13 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
                     <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm border border-primary/20">
                         <Utensils size={18} /> <span>Hospifood Quality</span>
                     </div>
-                    {/* 👇 Título adaptado a text-foreground */}
                     <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground leading-tight">
                         Tu opinión es nuestro <span className="text-primary">ingrediente principal</span>
                     </h1>
-                    {/* 👇 Párrafo adaptado a text-muted-foreground */}
                     <p className="text-lg text-muted-foreground max-w-md mx-auto md:mx-0">
                         Ayúdanos a mejorar el servicio de alimentación. Queremos asegurarnos de que tu menú y tu estancia sean lo más agradables posible.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-2">
-                        {/* 👇 Etiquetas adaptadas a bg-card, text-muted-foreground y border-border */}
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-card px-4 py-2 rounded-lg shadow-sm border border-border transition-colors duration-300">
                             <Clock size={18} className="text-amber-500"/> <span>Solo 2 minutos</span>
                         </div>
@@ -71,12 +67,10 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
                         </div>
                     </div>
 
-                    {/* 👇 Tarjeta principal adaptada a bg-card/90, text-card-foreground y border-border */}
                     <Card className="w-full max-w-sm shadow-xl border border-border bg-card/90 text-card-foreground backdrop-blur-sm transition-colors duration-300">
                         <CardContent className="p-6 space-y-5">
                             <div className="space-y-2 text-left">
                                 <label className="text-sm font-bold text-foreground">¿En qué planta o unidad estás?</label>
-                                {/* 👇 Select adaptado a bg-background, border-input y text-foreground */}
                                 <select 
                                     className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer"
                                     value={plantaSeleccionada}
@@ -92,7 +86,6 @@ export const EncuestaBienvenida = ({ turnosDisponibles, plantaSeleccionada, turn
                             </div>
                             <div className="space-y-2 text-left">
                                 <label className="text-sm font-bold text-foreground">¿Qué comida vas a valorar?</label>
-                                {/* 👇 Select adaptado a bg-background, border-input y text-foreground */}
                                 <select 
                                     className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer"
                                     value={turnoSeleccionado}

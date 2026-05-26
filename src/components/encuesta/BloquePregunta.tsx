@@ -21,7 +21,6 @@ export const BloquePregunta = ({ pregunta, index, total, valorSeleccionado, onSe
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Indicador de Progreso (Dots) */}
             <div className="flex justify-center gap-1.5 mb-6">
                 {Array.from({ length: total }).map((_, i) => (
                     <div
